@@ -21,16 +21,16 @@ def verificar_password():
 
     st.markdown("""
         <style>
-        .stApp { background-color: #F8F9FA; color: #2C3E50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .login-card { background: #FFFFFF; padding: 40px; border-radius: 12px; border: 1px solid #E2E8F0; max-width: 450px; margin: 80px auto; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .login-title { color: #E6007E; font-size: 26px; font-weight: bold; margin-bottom: 10px; }
+        .stApp { background: linear-gradient(135deg, #2D1B4E 0%, #1A0F2E 100%); color: #FFFFFF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .login-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 40px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 450px; margin: 80px auto; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .login-title { color: #FF007F; font-size: 26px; font-weight: bold; margin-bottom: 10px; }
         </style>
     """, unsafe_allow_html=True)
 
     st.markdown("""
         <div class="login-card">
-            <div class="login-title">Pharm<span style="color: #2C3E50;">Advisor</span></div>
-            <p style="color: #718096; font-size: 14px;">Acceso Restringido - Validador Metodológico Multicliente</p>
+            <div class="login-title">Pharm<span style="color: #FFFFFF;">Advisor</span></div>
+            <p style="color: #A0AEC0; font-size: 14px;">Acceso Restringido - Validador Metodológico Multicliente</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -49,22 +49,26 @@ if not verificar_password():
     st.stop()
 
 # ==========================================
-# APLICACIÓN PRINCIPAL (ESTILO ESSITY / LEUKOACADEMY CON ACENTO MAGENTA)
+# APLICACIÓN PRINCIPAL (ESTILO OSCURO / ESSITY LEUKOACADEMY)
 # ==========================================
 st.markdown("""
     <style>
-    .stApp { background-color: #F4F6F9; color: #2C3E50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .stApp { background: linear-gradient(135deg, #2D1B4E 0%, #150A24 100%) !important; color: #FFFFFF !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    section[data-testid="stSidebar"] { border-right: 3px solid #E6007E; background-color: #1E222B; }
-    section[data-testid="stSidebar"] .stSubheader, section[data-testid="stSidebar"] label { color: #FFFFFF !important; }
+    section[data-testid="stSidebar"] { border-right: 3px solid #FF007F; background-color: #1A0F2E !important; }
+    section[data-testid="stSidebar"] .stSubheader, section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span { color: #FFFFFF !important; }
     
-    .ph-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 3px solid #E6007E; margin-bottom: 25px; background: #FFFFFF; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .ph-title { color: #E6007E; font-size: 26px; font-weight: bold; margin: 0; }
+    .ph-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid rgba(255, 0, 127, 0.4); margin-bottom: 25px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .ph-title { color: #FF007F; font-size: 26px; font-weight: bold; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
     
-    h2 { color: #E6007E !important; font-size: 20px !important; font-weight: 700 !important; }
+    h2 { color: #FF007F !important; font-size: 20px !important; font-weight: 700 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    p, span, label { color: #E2E8F0 !important; }
     
-    .section-divider { margin-top: 40px; margin-bottom: 40px; border: 0; height: 1px; background: #CBD5E0; }
-    div[data-testid="stMetric"] { background-color: #FFFFFF; border-left: 4px solid #E6007E !important; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .section-divider { margin-top: 40px; margin-bottom: 40px; border: 0; height: 1px; background: rgba(255, 255, 255, 0.1); }
+    
+    div[data-testid="stMetric"] { background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(8px); border-left: 4px solid #FF007F !important; border-top: 1px solid rgba(255,255,255,0.08); border-right: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    div[data-testid="stMetric"] label { color: #A0AEC0 !important; }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] { color: #FFFFFF !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -72,10 +76,10 @@ st.markdown("""
     <div class="ph-header">
         <div>
             <h1 class="ph-title">Validador Metodológico | Programa Leukoacademy</h1>
-            <span style="color: #718096; font-size: 13px;">Auditoría Integral de Registro, Calidad y Muestras | Essity & Pharmadvisor</span>
+            <span style="color: #A0AEC0; font-size: 13px;">Auditoría Integral de Registro, Calidad y Muestras | Essity & Pharmadvisor</span>
         </div>
         <div style="text-align: right;">
-            <span style="color: #E6007E; font-weight: bold; font-size: 20px;">Pharm<span style="color: #2C3E50;">Advisor</span></span>
+            <span style="color: #FF007F; font-weight: bold; font-size: 20px;">Pharm<span style="color: #FFFFFF;">Advisor</span></span>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -229,7 +233,7 @@ if df_visitas is not None:
     # 1. DISTRIBUCIÓN DE VISITAS ÚNICAS POR FRANJA HORARIA
     # ==========================================
     st.subheader("1. Distribución de Visitas Únicas por Franja Horaria")
-    st.markdown("<span style='color: #718096;'>Auditoría global de puntualidad y franja de registro en visitas únicas.</span>", unsafe_allow_html=True)
+    st.markdown("<span style='color: #A0AEC0;'>Auditoría global de puntualidad y franja de registro en visitas únicas.</span>", unsafe_allow_html=True)
     st.markdown("---")
 
     def parse_hour_slot(hora_str):
@@ -259,9 +263,9 @@ if df_visitas is not None:
         franja_counts = franja_counts.sort_values(by='Franja Horaria')
         color_map = {'1. Mañana (05:00 - 12:00)': '#2ECC71', '2. Tarde (12:00 - 18:00)': '#3182CE', '3. Noche / Madrugada (18:00 - 05:00)': '#E53E3E', 'No Registrada': '#A0AEC0'}
 
-        fig_pie = px.pie(franja_counts, names='Franja Horaria', values='Total Visitas', hole=0.5, template='plotly_white', title="Semáforo de Oportunidad en el Registro de Visitas", color='Franja Horaria', color_discrete_map=color_map)
+        fig_pie = px.pie(franja_counts, names='Franja Horaria', values='Total Visitas', hole=0.5, template='plotly_dark', title="Semáforo de Oportunidad en el Registro de Visitas", color='Franja Horaria', color_discrete_map=color_map)
         fig_pie.update_traces(textinfo='percent+value', textposition='inside', insidetextorientation='horizontal', textfont_size=13)
-        fig_pie.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20))
+        fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20), font=dict(color='white'))
         st.plotly_chart(fig_pie, use_container_width=True)
     else:
         st.info("No se detectó la columna de hora de registro para la distribución de franjas horarias.")
@@ -272,7 +276,7 @@ if df_visitas is not None:
     # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
     # ==========================================
     st.subheader("2. Comparativa del % de Copiado Interno por Coordinación")
-    st.markdown("<span style='color: #718096;'>Comparativo del índice de autorrepetición agrupado por cada región o coordinación.</span>", unsafe_allow_html=True)
+    st.markdown("<span style='color: #A0AEC0;'>Comparativo del índice de autorrepetición agrupado por cada región o coordinación.</span>", unsafe_allow_html=True)
     st.markdown("---")
 
     df_reg_copia = df_unique.groupby(col_reg).agg(Total_Visitas=(col_visita, 'count'), Comentarios_Repetidos=('Es_Repetido', lambda x: int(x.sum()))).reset_index()
@@ -280,9 +284,9 @@ if df_visitas is not None:
     df_reg_copia['Pct_Copia'] = (df_reg_copia['Comentarios_Repetidos'] / df_reg_copia['Total_Visitas'] * 100).round(1)
     df_reg_copia = df_reg_copia.sort_values(by='Pct_Copia', ascending=False)
 
-    fig_reg_copia = px.bar(df_reg_copia, x='Región', y='Pct_Copia', text='Pct_Copia', template='plotly_white', title="Índice de Copiado Interno por Coordinación / Región", color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#3182CE'], [0.31, '#E53E3E'], [1.0, '#9B2C2C']], range_color=[0, 100])
+    fig_reg_copia = px.bar(df_reg_copia, x='Región', y='Pct_Copia', text='Pct_Copia', template='plotly_dark', title="Índice de Copiado Interno por Coordinación / Región", color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#3182CE'], [0.31, '#E53E3E'], [1.0, '#9B2C2C']], range_color=[0, 100])
     fig_reg_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=12)
-    fig_reg_copia.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=450, xaxis_title="Coordinación / Región", yaxis_title="Índice de Copiado Interno (%)", yaxis=dict(range=[0, 110]), margin=dict(t=50, b=80, l=40, r=20))
+    fig_reg_copia.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, xaxis_title="Coordinación / Región", yaxis_title="Índice de Copiado Interno (%)", yaxis=dict(range=[0, 110]), margin=dict(t=50, b=80, l=40, r=20), font=dict(color='white'))
     st.plotly_chart(fig_reg_copia, use_container_width=True)
 
     st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
@@ -291,7 +295,7 @@ if df_visitas is not None:
     # 3. ÍNDICE DE AUTORREPETICIÓN POR REPRESENTANTE
     # ==========================================
     st.subheader("3. Auditoría de Calidad: Índice de Autorrepetición por Representante")
-    st.markdown("<span style='color: #718096;'>Evaluación estricta de cuántas veces cada representante recicla sus propios comentarios entre sus visitas.</span>", unsafe_allow_html=True)
+    st.markdown("<span style='color: #A0AEC0;'>Evaluación estricta de cuántas veces cada representante recicla sus propios comentarios entre sus visitas.</span>", unsafe_allow_html=True)
     st.markdown("---")
     
     total_comentarios = len(df_unique)
@@ -312,16 +316,16 @@ if df_visitas is not None:
     altura_grafico = max(450, len(rep_copia) * 25)
     
     fig_bar_copia = px.bar(
-        rep_copia, x='Pct_Copia', y='Representante', text='Pct_Copia', template='plotly_white',
+        rep_copia, x='Pct_Copia', y='Representante', text='Pct_Copia', template='plotly_dark',
         title="<b>Índice de Autorrepetición (%) por Representante</b>",
         color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#3182CE'], [0.31, '#E53E3E'], [1.0, '#9B2C2C']],
         range_color=[0, 100], orientation='h'
     )
     fig_bar_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=11)
     fig_bar_copia.update_layout(
-        paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=altura_grafico,
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=altura_grafico,
         xaxis_title="Índice de Autorrepetición (%)", yaxis_title="Representante",
-        xaxis=dict(range=[0, 115]), margin=dict(t=50, b=50, l=150, r=20)
+        xaxis=dict(range=[0, 115]), margin=dict(t=50, b=50, l=150, r=20), font=dict(color='white')
     )
     st.plotly_chart(fig_bar_copia, use_container_width=True)
     
@@ -335,7 +339,7 @@ if df_visitas is not None:
     # 4. AUDITORÍA DE CALIDAD METODOLÓGICA
     # ==========================================
     st.subheader("4. Auditoría de Calidad Metodológica (Técnica de Ventas - Visitas Únicas)")
-    st.markdown("<span style='color: #718096;'>Evaluación inteligente de la Fase 2 (Comentarios) y Fase 1/3 (Objetivos) con penalización automática a Alerta ante registros con copy-paste.</span>", unsafe_allow_html=True)
+    st.markdown("<span style='color: #A0AEC0;'>Evaluación inteligente de la Fase 2 (Comentarios) y Fase 1/3 (Objetivos) con penalización automática a Alerta ante registros con copy-paste.</span>", unsafe_allow_html=True)
     st.markdown("---")
     
     df_audit_tec = df_unique.copy()
@@ -409,16 +413,16 @@ if df_visitas is not None:
     df_rep_metodo['Texto_Barra'] = df_rep_metodo.apply(formato_etiqueta, axis=1)
     
     fig_metodo = px.bar(
-        df_rep_metodo, x='Total', y='Representante', color='Estado_Metodologico', barmode='stack', text='Texto_Barra', template='plotly_white',
+        df_rep_metodo, x='Total', y='Representante', color='Estado_Metodologico', barmode='stack', text='Texto_Barra', template='plotly_dark',
         title="<b>Adopción de la Técnica de Ventas por Representante</b>",
         color_discrete_map={'Visita Sobresaliente (Dominada)': '#2ECC71', 'En Proceso de Apropiación': '#3182CE', 'Riesgo Metodológico (Alerta)': '#E53E3E'},
         orientation='h'
     )
     fig_metodo.update_traces(textposition='inside', insidetextanchor='middle', textfont_size=11)
     fig_metodo.update_layout(
-        paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=max(450, len(representantes)*25),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=max(450, len(representantes)*25),
         xaxis_title="Cantidad de Visitas Únicas", yaxis_title="Representante",
-        margin=dict(t=50, b=50, l=150, r=40)
+        margin=dict(t=50, b=50, l=150, r=40), font=dict(color='white')
     )
     st.plotly_chart(fig_metodo, use_container_width=True)
     
@@ -464,8 +468,156 @@ if df_visitas is not None:
     # 5. FOCALIZACIÓN DE ACOMPAÑAMIENTOS POR COORDINACIÓN
     # ==========================================
     st.subheader("5. Focalización de Acompañamientos por Coordinación")
-    st.markdown("<span style='color: #718096;'>Conteo de visitas con acompañamiento real de coordinador registradas en el ciclo.</span>", unsafe_allow_html=True)
+    st.markdown("<span style='color: #A0AEC0;'>Conteo de visitas con acompañamiento real de coordinador registradas en el ciclo.</span>", unsafe_allow_html=True)
     st.markdown("---")
 
     if col_acomp and col_acomp in df_unique.columns:
         df_acompañadas = df_unique[df_unique[col_acomp].notna() & (df_unique[col_acomp].astype(str).str.strip() != '')].copy()
+        total_acomp = len(df_acompañadas)
+
+        if total_acomp > 0:
+            df_coord_acomp = df_acompañadas.groupby(col_reg).agg(Total_Acompañadas=(col_visita, 'count')).reset_index()
+            df_coord_acomp.columns = ['Región', 'Total_Acompañadas']
+            
+            fig_acomp = px.bar(df_coord_acomp, x='Región', y='Total_Acompañadas', text='Total_Acompañadas', template='plotly_dark', title="Visitas con Acompañamiento Real por Coordinación", color='Total_Acompañadas', color_continuous_scale='Purples')
+            fig_acomp.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=12)
+            fig_acomp.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=420, xaxis_title="Coordinación / Región", yaxis_title="Cantidad de Visitas Acompañadas", margin=dict(t=50, b=50, l=40, r=20), font=dict(color='white'))
+            st.plotly_chart(fig_acomp, use_container_width=True)
+        else:
+            st.info("No se registraron visitas con acompañamiento bajo los filtros seleccionados.")
+    else:
+        st.info("No se detectó la columna de 'Visita acompañada' en el archivo.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 6. AUDITORÍA DE IMPACTOS PROMOCIONALES (REALIZADOS VS ESPERADOS)
+    # ==========================================
+    st.subheader("6. Auditoría de Impactos Promocionales: Realizados vs. Esperados")
+    st.markdown("<span style='color: #A0AEC0;'>Comparativo de impactos realizados frente a los esperados por producto (Top 10).</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if df_impactos is not None:
+        df_imp_filtrado = df_impactos[df_impactos['Región'].isin(selected_regiones)].copy() if 'Región' in df_impactos.columns else df_impactos
+        df_imp_agrupado = df_imp_filtrado.groupby('Producto', as_index=False)[['Imp_Esp', 'Imp_Real']].sum()
+
+        if len(df_imp_agrupado) > 0:
+            df_imp_agrupado['Imp_Esp'] = df_imp_agrupado['Imp_Esp'].round(0).astype(int)
+            df_imp_agrupado['Imp_Real'] = df_imp_agrupado['Imp_Real'].round(0).astype(int)
+            df_imp_agrupado['Pct_Cumplimiento'] = (df_imp_agrupado['Imp_Real'] / df_imp_agrupado['Imp_Esp'] * 100).fillna(0).round(1)
+            df_imp_agrupado['Imp_Pendiente'] = (df_imp_agrupado['Imp_Esp'] - df_imp_agrupado['Imp_Real']).apply(lambda x: max(0, x))
+            df_imp_agrupado = df_imp_agrupado.sort_values(by=['Imp_Esp', 'Pct_Cumplimiento'], ascending=[True, True]).tail(10)
+            df_imp_agrupado['Texto_Real'] = df_imp_agrupado['Imp_Real'].astype(str) + " (" + df_imp_agrupado['Pct_Cumplimiento'].astype(str) + "%)"
+            df_imp_agrupado['Texto_Total'] = df_imp_agrupado['Imp_Esp'].astype(str)
+
+            fig_impactos = go.Figure()
+            fig_impactos.add_trace(go.Bar(y=df_imp_agrupado['Producto'], x=df_imp_agrupado['Imp_Real'], name='Realizados', orientation='h', marker=dict(color='#2ECC71'), text=df_imp_agrupado['Texto_Real'], textposition='inside'))
+            fig_impactos.add_trace(go.Bar(y=df_imp_agrupado['Producto'], x=df_imp_agrupado['Imp_Pendiente'], name='Brecha Pendiente', orientation='h', marker=dict(color='#FF007F'), text=df_imp_agrupado['Texto_Total'], textposition='outside'))
+            fig_impactos.update_layout(template='plotly_dark', title="Top Impactos Promocionales: Realizados vs Esperados", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, barmode='stack', xaxis_title="Impactos Esperados", yaxis_title="Producto", font=dict(color='white'))
+            st.plotly_chart(fig_impactos, use_container_width=True)
+        else:
+            st.info("No hay registros de impactos bajo los filtros seleccionados.")
+    else:
+        st.info("Cargue el archivo de Impactos Promocionales en la barra lateral para visualizar esta sección.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 7. AUDITORÍA AVANZADA DE MUESTRAS MÉDICAS Y RECEPTIVIDAD
+    # ==========================================
+    st.subheader("7. Auditoría Avanzada de Muestras Médicas y Receptividad por Producto")
+    st.markdown("<span style='color: #A0AEC0;'>Análisis de unidades entregadas y receptividad o actitud médica registrada.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if col_muestra and col_cant_muestra and col_muestra in df_filtered.columns:
+        df_muestras = df_filtered.dropna(subset=[col_muestra]).copy()
+        df_muestras['Muestra_Clean'] = df_muestras[col_muestra].astype(str).str.strip()
+        excluidos_muestras = ['', '-', 'nan', 'none', 'nat', '0', 'false', 'no', 'sin muestra', 'ninguna']
+        df_muestras = df_muestras[~df_muestras['Muestra_Clean'].str.lower().isin(excluidos_muestras)]
+        df_muestras['Cantidad_Num'] = pd.to_numeric(df_muestras[col_cant_muestra], errors='coerce').fillna(1)
+
+        df_m_agrup = df_muestras.groupby('Muestra_Clean', as_index=False).agg(Total_Unidades=('Cantidad_Num', 'sum')).sort_values(by='Total_Unidades', ascending=False).head(10)
+
+        if len(df_m_agrup) > 0:
+            fig_muestras = px.bar(df_m_agrup, x='Total_Unidades', y='Muestra_Clean', text='Total_Unidades', template='plotly_dark', title="Top Muestras Médicas / Materiales Entregados", color='Total_Unidades', color_continuous_scale='Purples', orientation='h')
+            fig_muestras.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=11)
+            fig_muestras.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=420, xaxis_title="Total Unidades Entregadas", yaxis_title="Material / Muestra", margin=dict(t=50, b=50, l=150, r=20), font=dict(color='white'))
+            st.plotly_chart(fig_muestras, use_container_width=True)
+        else:
+            st.info("No hay registros de muestras médicas válidas.")
+    else:
+        st.info("Columnas de muestras médicas no identificadas automáticamente.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+    st.subheader("Generación de Reporte Ejecutivo Gerencial Essity")
+    st.markdown("<span style='color: #A0AEC0;'>Genera un informe analítico completo incrustando las visualizaciones comerciales para directivos.</span>", unsafe_allow_html=True)
+    
+    if st.button("Generar Informe Ejecutivo con Gráficas"):
+        html_chart_copia = fig_bar_copia.to_html(full_html=False, include_plotlyjs='cdn')
+        html_chart_metodo = fig_metodo.to_html(full_html=False, include_plotlyjs='cdn')
+        
+        pct_alertas = (alertas / total_v_audit * 100) if total_v_audit > 0 else 0
+        
+        rep_resumen = df_audit_tec.groupby(col_rep).agg(Visitas=(col_visita, 'count'), Alertas=('Estado_Metodologico', lambda x: (x == 'Riesgo Metodológico (Alerta)').sum()), Copia=('Es_Repetido', 'sum')).reset_index()
+        rep_resumen.columns = ['Representante', 'Visitas', 'Alertas', 'Copia']
+        rep_resumen['Pct_Riesgo'] = (rep_resumen['Alertas'] / rep_resumen['Visitas'] * 100).round(1)
+        criticos = rep_resumen.sort_values(by='Pct_Riesgo', ascending=False).head(5)
+        
+        tabla_html_rows = ""
+        for _, r in criticos.iterrows():
+            tabla_html_rows += "<tr><td>" + str(r['Representante']) + "</td><td>" + str(r['Visitas']) + "</td><td>" + str(r['Alertas']) + "</td><td>" + str(r['Pct_Riesgo']) + "%</td></tr>"
+        
+        css_estilos = """
+        <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #2C3E50; margin: 40px; line-height: 1.6; background-color: #F8F9FA; }
+        h1 { color: #FF007F; border-bottom: 3px solid #FF007F; padding-bottom: 8px; font-size: 24px; }
+        h2 { color: #FF007F; margin-top: 40px; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 18px; }
+        .metrics-container { display: flex; justify-content: space-between; margin-bottom: 25px; }
+        .metric-card { background: #FFFFFF; border-left: 4px solid #FF007F; padding: 15px; width: 22%; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .metric-title { font-size: 11px; color: #7F8C8D; text-transform: uppercase; font-weight: bold; }
+        .metric-value { font-size: 18px; color: #2C3E50; font-weight: bold; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; background: #FFFFFF; }
+        th, td { border: 1px solid #DDDDDD; padding: 10px; text-align: left; font-size: 12px; }
+        th { background-color: #1A0F2E; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .chart-container { margin: 30px 0; background: #FFFFFF; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .recommendation-box { background: #FFF5F9; border-left: 4px solid #FF007F; padding: 20px; border-radius: 4px; margin-top: 30px; }
+        </style>
+        """
+
+        card_1 = "<div class='metric-card'><div class='metric-title'>Visitas Únicas</div><div class='metric-value'>" + f"{total_v_audit:,}" + "</div></div>"
+        card_2 = "<div class='metric-card'><div class='metric-title'>Índice de Clonación</div><div class='metric-value'>" + f"{pct_copia:.1f}%" + "</div></div>"
+        card_3 = "<div class='metric-card'><div class='metric-title'>Visitas Sobresalientes</div><div class='metric-value'>" + f"{sobresalientes:,} ({((sobresalientes/total_v_audit*100) if total_v_audit > 0 else 0):.1f}%)" + "</div></div>"
+        card_4 = "<div class='metric-card'><div class='metric-title'>Riesgo / Alertas</div><div class='metric-value'>" + f"{alertas:,} ({pct_alertas:.1f}%)" + "</div></div>"
+
+        reporte_html = (
+            "<!DOCTYPE html><html><head><meta charset='utf-8'>" + css_estilos + "</head><body>"
+            "<h1>ESSITY / LEUKOACADEMY | INFORME EJECUTIVO DE VALIDACIÓN METODOLÓGICA</h1>"
+            "<p><b>Cliente / Cuenta:</b> " + str(cliente_input) + " | <b>Líneas / Segmento:</b> " + str(lineas_input) + "</p>"
+            "<p><b>Fecha de Emisión:</b> " + pd.Timestamp.now().strftime('%Y-%m-%d %H:%M') + " | <b>Segmento:</b> Programa Leukoacademy</p>"
+            "<h2>1. Resumen Ejecutivo del Ciclo</h2>"
+            "<div class='metrics-container'>" + card_1 + card_2 + card_3 + card_4 + "</div>"
+            "<h2>2. Hallazgos Analíticos y Visuales del Ciclo</h2>"
+            "<div class='chart-container'><b>Gráfica de Autorrepetición por Representante</b><br>" + html_chart_copia + "</div>"
+            "<div class='chart-container'><b>Gráfica de Calidad Metodológica</b><br>" + html_chart_metodo + "</div>"
+            "<h2>3. Representantes con Mayor Oportunidad de Acompañamiento (Top Riesgos)</h2>"
+            "<table><tr><th>Representante</th><th>Visitas Evaluadas</th><th>Registros en Alerta</th><th>% de Riesgo Metodológico</th></tr>" + tabla_html_rows + "</table>"
+            "<div class='recommendation-box'>"
+            "<h3 style='margin-top:0; color: #FF007F;'>4. Recomendaciones de Acción</h3>"
+            "<ol>"
+            "<li><b>Retroalimentación 1 a 1:</b> Programar sesiones de coaching con los asesores identificados con mayores índices de clonación en el programa Leukoacademy.</li>"
+            "<li><b>Alineación en Objetivos:</b> Reforzar que los objetivos redactados reflejen comportamientos de valor y no tareas rutinarias.</li>"
+            "</ol></div></body></html>"
+        )
+        
+        st.success("¡Informe ejecutivo Essity con gráficas generado exitosamente!")
+        st.download_button(
+            label="📥 Descargar Informe Ejecutivo Completo (HTML / Imprimible a PDF)",
+            data=reporte_html,
+            file_name=f"Informe_Gerencial_Essity_{pd.Timestamp.now().strftime('%Y%m%d')}.html",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        st.info("Impresión a PDF: Abre el archivo descargado en tu navegador web, presiona Ctrl + P (o Cmd + P en Mac) y selecciona 'Guardar como PDF'.")
+
+else:
+    st.info("Por favor carga el archivo de visitas en la barra lateral para iniciar el análisis del programa Leukoacademy.")
