@@ -386,17 +386,4 @@ if df_visitas is not None:
     m1, m2, m3 = st.columns(3)
     m1.metric("Visitas Únicas Evaluadas", f"{total_v_audit:,}")
     m2.metric("Visitas Sobresalientes", f"{sobresalientes:,}", f"{(sobresalientes/total_v_audit*100):.1f}%")
-    m3.metric("Visitas en Alerta (Riesgo)", f"{alertas:,}", f"{(alertas/total_v_audit*100):.1f}%", delta_color="inverse")
-    st.markdown("---")
-    
-    df_rep_metodo = df_audit_tec.groupby([col_rep, 'Estado_Metodologico'], as_index=False).agg(Total=(col_visita, 'count'))
-    df_rep_metodo.columns = ['Representante', 'Estado_Metodologico', 'Total']
-    df_rep_totales = df_rep_metodo.groupby('Representante', as_index=False).agg(Total_Rep=('Total', 'sum'))
-    df_rep_metodo = pd.merge(df_rep_metodo, df_rep_totales, on='Representante')
-    df_rep_metodo['Porcentaje'] = (df_rep_metodo['Total'] / df_rep_metodo['Total_Rep'] * 100).round(1)
-    
-    def formato_etiqueta(row):
-        if row['Porcentaje'] >= 5.0: return f"{row['Total']} ({row['Porcentaje']}%)"
-        return ""
-
-    df_rep_metodo['Texto_Barra'] = df_rep_metodo.
+    m3.metric("Visitas en Alerta (Riesgo)", f"{alertas:,}", f"{(alertas/total_v_audit*100):.1f}%", delta_color
