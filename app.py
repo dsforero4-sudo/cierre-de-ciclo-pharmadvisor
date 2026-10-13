@@ -386,4 +386,199 @@ if df_visitas is not None:
     m1, m2, m3 = st.columns(3)
     m1.metric("Visitas Únicas Evaluadas", f"{total_v_audit:,}")
     m2.metric("Visitas Sobresalientes", f"{sobresalientes:,}", f"{(sobresalientes/total_v_audit*100):.1f}%")
-    m3.metric("Visitas en Alerta (Riesgo)", f"{alertas:,}", f"{(alertas/total_v_audit*100):.1f}%", delta_color
+    m3.metric("Visitas en Alerta (Riesgo)", f"{alertas:,}", f"{(alertas/total_v_audit*100):.1f}%", delta_color="inverse")
+    st.markdown("---")
+    
+    df_rep_metodo = df_audit_tec.groupby([col_rep, 'Estado_Metodologico'], as_index=False).agg(Total=(col_visita, 'count'))
+    df_rep_metodo.columns = ['Representante', 'Estado_Metodologico', 'Total']
+    df_rep_totales = df_rep_metodo.groupby('Representante', as_index=False).agg(Total_Rep=('Total', 'sum'))
+    df_rep_metodo = pd.merge(df_rep_metodo, df_rep_totales, on='Representante')
+    df_rep_metodo['Porcentaje'] = (df_rep_metodo['Total'] / df_rep_metodo['Total_Rep'] * 100).round(1)
+    
+    def formato_etiqueta(row):
+        if row['Porcentaje'] >= 5.0: return f"{row['Total']} ({row['Porcentaje']}%)"
+        return ""
+
+    df_rep_metodo['Texto_Barra'] = df_rep_metodo.apply(formato_etiqueta, axis=1)
+    
+    fig_metodo = px.bar(
+        df_rep_metodo, x='Total', y='Representante', color='Estado_Metodologico', barmode='stack', text='Texto_Barra', template='plotly_white',
+        title="<b>Adopción de la Técnica de Ventas por Representante</b>",
+        color_discrete_map={'Visita Sobresaliente (Dominada)': '#2ECC71', 'En Proceso de Apropiación': '#3182CE', 'Riesgo Metodológico (Alerta)': '#E53E3E'},
+        orientation='h'
+    )
+    fig_metodo.update_traces(textposition='inside', insidetextanchor='middle', textfont_size=11)
+    fig_metodo.update_layout(
+        paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=max(450, len(representantes)*25),
+        xaxis_title="Cantidad de Visitas Únicas", yaxis_title="Representante",
+        margin=dict(t=50, b=50, l=150, r=40)
+    )
+    st.plotly_chart(fig_metodo, use_container_width=True)
+    
+    with st.expander("🔍 Ver detalle completo de auditoría (por Visita Única) con filtros de calidad y representante"):
+        col_f_niv, col_f_rep, col_f_btn = st.columns([1.5, 1.5, 1])
+        niveles_disponibles = ['Todos'] + sorted(df_audit_tec['Estado_Metodologico'].unique().tolist())
+        with col_f_niv:
+            filtro_nivel_sel = st.selectbox("Filtrar por Nivel Metodológico", options=niveles_disponibles, key="select_filtro_nivel")
+            
+        reps_disponibles_audit = ['Todos'] + sorted(df_audit_tec[col_rep].dropna().unique().tolist())
+        with col_f_rep:
+            filtro_rep_sel = st.selectbox("Filtrar por Representante", options=reps_disponibles_audit, key="select_filtro_rep_audit")
+            
+        df_tabla_filtrada = df_audit_tec.copy()
+        if filtro_nivel_sel != 'Todos': df_tabla_filtrada = df_tabla_filtrada[df_tabla_filtrada['Estado_Metodologico'] == filtro_nivel_sel]
+        if filtro_rep_sel != 'Todos': df_tabla_filtrada = df_tabla_filtrada[df_tabla_filtrada[col_rep] == filtro_rep_sel]
+            
+        cols_tabla = [c for c in [col_rep, col_visita, col_fecha, col_med, col_com, 'Calidad_Comentario', 'Justificacion_Comentario', col_obj, 'Calidad_Objetivo', 'Justificacion_Objetivo', 'Estado_Metodologico'] if c is not None]
+        
+        with col_f_btn:
+            st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+            def convertir_df_a_excel(df_export):
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df_export.to_excel(writer, index=False, sheet_name='Detalle_Filtrado')
+                return output.getvalue()
+
+            excel_filtrado = convertir_df_a_excel(df_tabla_filtrada[cols_tabla])
+            st.download_button(
+                label="📥 Descargar Tabla en Excel",
+                data=excel_filtrado,
+                file_name=f"Detalle_Visitas_Essity_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="btn_excel_inline",
+                use_container_width=True
+            )
+
+        st.dataframe(df_tabla_filtrada[cols_tabla], use_container_width=True, hide_index=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 5. FOCALIZACIÓN DE ACOMPAÑAMIENTOS POR COORDINACIÓN
+    # ==========================================
+    st.subheader("5. Focalización de Acompañamientos por Coordinación")
+    st.markdown("<span style='color: #718096;'>Conteo de visitas con acompañamiento real de coordinador registradas en el ciclo.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if col_acomp and col_acomp in df_unique.columns:
+        df_acompañadas = df_unique[df_unique[col_acomp].notna() & (df_unique[col_acomp].astype(str).str.strip() != '')].copy()
+        total_acomp = len(df_acompañadas)
+
+        if total_acomp > 0:
+            df_coord_acomp = df_acompañadas.groupby(col_reg).agg(Total_Acompañadas=(col_visita, 'count')).reset_index()
+            df_coord_acomp.columns = ['Región', 'Total_Acompañadas']
+            
+            fig_acomp = px.bar(df_coord_acomp, x='Región', y='Total_Acompañadas', text='Total_Acompañadas', template='plotly_white', title="Visitas con Acompañamiento Real por Coordinación", color='Total_Acompañadas', color_continuous_scale='Blues')
+            fig_acomp.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=12)
+            fig_acomp.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=420, xaxis_title="Coordinación / Región", yaxis_title="Cantidad de Visitas Acompañadas", margin=dict(t=50, b=50, l=40, r=20))
+            st.plotly_chart(fig_acomp, use_container_width=True)
+        else:
+            st.info("No se registraron visitas con acompañamiento bajo los filtros seleccionados.")
+    else:
+        st.info("No se detectó la columna de 'Visita acompañada' en el archivo.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 6. AUDITORÍA DE IMPACTOS PROMOCIONALES (REALIZADOS VS ESPERADOS)
+    # ==========================================
+    st.subheader("6. Auditoría de Impactos Promocionales: Realizados vs. Esperados")
+    st.markdown("<span style='color: #718096;'>Comparativo de impactos realizados frente a los esperados por producto (Top 10).</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if df_impactos is not None:
+        df_imp_filtrado = df_impactos[df_impactos['Región'].isin(selected_regiones)].copy() if 'Región' in df_impactos.columns else df_impactos
+        df_imp_agrupado = df_imp_filtrado.groupby('Producto', as_index=False)[['Imp_Esp', 'Imp_Real']].sum()
+
+        if len(df_imp_agrupado) > 0:
+            df_imp_agrupado['Imp_Esp'] = df_imp_agrupado['Imp_Esp'].round(0).astype(int)
+            df_imp_agrupado['Imp_Real'] = df_imp_agrupado['Imp_Real'].round(0).astype(int)
+            df_imp_agrupado['Pct_Cumplimiento'] = (df_imp_agrupado['Imp_Real'] / df_imp_agrupado['Imp_Esp'] * 100).fillna(0).round(1)
+            df_imp_agrupado['Imp_Pendiente'] = (df_imp_agrupado['Imp_Esp'] - df_imp_agrupado['Imp_Real']).apply(lambda x: max(0, x))
+            df_imp_agrupado = df_imp_agrupado.sort_values(by=['Imp_Esp', 'Pct_Cumplimiento'], ascending=[True, True]).tail(10)
+            df_imp_agrupado['Texto_Real'] = df_imp_agrupado['Imp_Real'].astype(str) + " (" + df_imp_agrupado['Pct_Cumplimiento'].astype(str) + "%)"
+            df_imp_agrupado['Texto_Total'] = df_imp_agrupado['Imp_Esp'].astype(str)
+
+            fig_impactos = go.Figure()
+            fig_impactos.add_trace(go.Bar(y=df_imp_agrupado['Producto'], x=df_imp_agrupado['Imp_Real'], name='Realizados', orientation='h', marker=dict(color='#2ECC71'), text=df_imp_agrupado['Texto_Real'], textposition='inside'))
+            fig_impactos.add_trace(go.Bar(y=df_imp_agrupado['Producto'], x=df_imp_agrupado['Imp_Pendiente'], name='Brecha Pendiente', orientation='h', marker=dict(color='#3182CE'), text=df_imp_agrupado['Texto_Total'], textposition='outside'))
+            fig_impactos.update_layout(template='plotly_white', title="Top Impactos Promocionales: Realizados vs Esperados", paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=450, barmode='stack', xaxis_title="Impactos Esperados", yaxis_title="Producto")
+            st.plotly_chart(fig_impactos, use_container_width=True)
+        else:
+            st.info("No hay registros de impactos bajo los filtros seleccionados.")
+    else:
+        st.info("Cargue el archivo de Impactos Promocionales en la barra lateral para visualizar esta sección.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 7. AUDITORÍA AVANZADA DE MUESTRAS MÉDICAS Y RECEPTIVIDAD
+    # ==========================================
+    st.subheader("7. Auditoría Avanzada de Muestras Médicas y Receptividad por Producto")
+    st.markdown("<span style='color: #718096;'>Análisis de unidades entregadas y receptividad o actitud médica registrada.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if col_muestra and col_cant_muestra and col_muestra in df_filtered.columns:
+        df_muestras = df_filtered.dropna(subset=[col_muestra]).copy()
+        df_muestras['Muestra_Clean'] = df_muestras[col_muestra].astype(str).str.strip()
+        excluidos_muestras = ['', '-', 'nan', 'none', 'nat', '0', 'false', 'no', 'sin muestra', 'ninguna']
+        df_muestras = df_muestras[~df_muestras['Muestra_Clean'].str.lower().isin(excluidos_muestras)]
+        df_muestras['Cantidad_Num'] = pd.to_numeric(df_muestras[col_cant_muestra], errors='coerce').fillna(1)
+
+        df_m_agrup = df_muestras.groupby('Muestra_Clean', as_index=False).agg(Total_Unidades=('Cantidad_Num', 'sum')).sort_values(by='Total_Unidades', ascending=False).head(10)
+
+        if len(df_m_agrup) > 0:
+            fig_muestras = px.bar(df_m_agrup, x='Total_Unidades', y='Muestra_Clean', text='Total_Unidades', template='plotly_white', title="Top Muestras Médicas / Materiales Entregados", color='Total_Unidades', color_continuous_scale='Purples', orientation='h')
+            fig_muestras.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=11)
+            fig_muestras.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=420, xaxis_title="Total Unidades Entregadas", yaxis_title="Material / Muestra", margin=dict(t=50, b=50, l=150, r=20))
+            st.plotly_chart(fig_muestras, use_container_width=True)
+        else:
+            st.info("No hay registros de muestras médicas válidas.")
+    else:
+        st.info("Columnas de muestras médicas no identificadas automáticamente.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+    st.subheader("Generación de Reporte Ejecutivo Gerencial Essity")
+    st.markdown("<span style='color: #718096;'>Genera un informe analítico completo incrustando las visualizaciones comerciales para directivos.</span>", unsafe_allow_html=True)
+    
+    if st.button("Generar Informe Ejecutivo con Gráficas"):
+        html_chart_copia = fig_bar_copia.to_html(full_html=False, include_plotlyjs='cdn')
+        html_chart_metodo = fig_metodo.to_html(full_html=False, include_plotlyjs='cdn')
+        
+        pct_alertas = (alertas / total_v_audit * 100) if total_v_audit > 0 else 0
+        
+        rep_resumen = df_audit_tec.groupby(col_rep).agg(Visitas=(col_visita, 'count'), Alertas=('Estado_Metodologico', lambda x: (x == 'Riesgo Metodológico (Alerta)').sum()), Copia=('Es_Repetido', 'sum')).reset_index()
+        rep_resumen.columns = ['Representante', 'Visitas', 'Alertas', 'Copia']
+        rep_resumen['Pct_Riesgo'] = (rep_resumen['Alertas'] / rep_resumen['Visitas'] * 100).round(1)
+        criticos = rep_resumen.sort_values(by='Pct_Riesgo', ascending=False).head(5)
+        
+        tabla_html_rows = ""
+        for _, r in criticos.iterrows():
+            tabla_html_rows += "<tr><td>" + str(r['Representante']) + "</td><td>" + str(r['Visitas']) + "</td><td>" + str(r['Alertas']) + "</td><td>" + str(r['Pct_Riesgo']) + "%</td></tr>"
+        
+        css_estilos = """
+        <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #2C3E50; margin: 40px; line-height: 1.6; background-color: #F8F9FA; }
+        h1 { color: #E6007E; border-bottom: 3px solid #E6007E; padding-bottom: 8px; font-size: 24px; }
+        h2 { color: #2D3346; margin-top: 40px; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 18px; }
+        .metrics-container { display: flex; justify-content: space-between; margin-bottom: 25px; }
+        .metric-card { background: #FFFFFF; border-left: 4px solid #E6007E; padding: 15px; width: 22%; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .metric-title { font-size: 11px; color: #7F8C8D; text-transform: uppercase; font-weight: bold; }
+        .metric-value { font-size: 18px; color: #2C3E50; font-weight: bold; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; background: #FFFFFF; }
+        th, td { border: 1px solid #DDDDDD; padding: 10px; text-align: left; font-size: 12px; }
+        th { background-color: #2D3346; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .chart-container { margin: 30px 0; background: #FFFFFF; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .recommendation-box { background: #FFF5F9; border-left: 4px solid #E6007E; padding: 20px; border-radius: 4px; margin-top: 30px; }
+        </style>
+        """
+
+        reporte_html = (
+            "<!DOCTYPE html><html><head><meta charset='utf-8'>" + css_estilos + "</head><body>"
+            "<h1>ESSITY / LEUKOACADEMY | INFORME EJECUTIVO DE VALIDACIÓN METODOLÓGICA</h1>"
+            "<p><b>Cliente / Cuenta:</b> " + str(cliente_input) + " | <b>Líneas / Segmento:</b> " + str(lineas_input) + "</p>"
+            "<p><b>Fecha de Emisión:</b> " + pd.Timestamp.now().strftime('%Y-%m-%d %H:%M') + " | <b>Segmento:</b> Programa Leukoacademy</p>"
+            "<h2>1. Resumen Ejecutivo del Ciclo</h2>"
+            "<div class='metrics-container'>"
+            "<div class='metric-card'><div class='metric-title'>Visitas Únicas</div><div class='metric-value
