@@ -55,14 +55,12 @@ st.markdown("""
     <style>
     .stApp { background-color: #F4F6F9; color: #2C3E50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    /* Forzar acento magenta en la barra lateral */
     section[data-testid="stSidebar"] { border-right: 3px solid #E6007E; background-color: #1E222B; }
     section[data-testid="stSidebar"] .stSubheader, section[data-testid="stSidebar"] label { color: #FFFFFF !important; }
     
     .ph-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 3px solid #E6007E; margin-bottom: 25px; background: #FFFFFF; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .ph-title { color: #E6007E; font-size: 26px; font-weight: bold; margin: 0; }
     
-    /* Títulos de sección con acento corporativo magenta */
     h2 { color: #E6007E !important; font-size: 20px !important; font-weight: 700 !important; }
     
     .section-divider { margin-top: 40px; margin-bottom: 40px; border: 0; height: 1px; background: #CBD5E0; }
@@ -263,4 +261,211 @@ if df_visitas is not None:
 
         fig_pie = px.pie(franja_counts, names='Franja Horaria', values='Total Visitas', hole=0.5, template='plotly_white', title="Semáforo de Oportunidad en el Registro de Visitas", color='Franja Horaria', color_discrete_map=color_map)
         fig_pie.update_traces(textinfo='percent+value', textposition='inside', insidetextorientation='horizontal', textfont_size=13)
-        fig_pie.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=450, legend=dict(orientation="h", yanchor="bottom", y
+        fig_pie.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20))
+        st.plotly_chart(fig_pie, use_container_width=True)
+    else:
+        st.info("No se detectó la columna de hora de registro para la distribución de franjas horarias.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
+    # ==========================================
+    st.subheader("2. Comparativa del % de Copiado Interno por Coordinación")
+    st.markdown("<span style='color: #718096;'>Comparativo del índice de autorrepetición agrupado por cada región o coordinación.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    df_reg_copia = df_unique.groupby(col_reg).agg(Total_Visitas=(col_visita, 'count'), Comentarios_Repetidos=('Es_Repetido', lambda x: int(x.sum()))).reset_index()
+    df_reg_copia.columns = ['Región', 'Total_Visitas', 'Comentarios_Repetidos']
+    df_reg_copia['Pct_Copia'] = (df_reg_copia['Comentarios_Repetidos'] / df_reg_copia['Total_Visitas'] * 100).round(1)
+    df_reg_copia = df_reg_copia.sort_values(by='Pct_Copia', ascending=False)
+
+    fig_reg_copia = px.bar(df_reg_copia, x='Región', y='Pct_Copia', text='Pct_Copia', template='plotly_white', title="Índice de Copiado Interno por Coordinación / Región", color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#3182CE'], [0.31, '#E53E3E'], [1.0, '#9B2C2C']], range_color=[0, 100])
+    fig_reg_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=12)
+    fig_reg_copia.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=450, xaxis_title="Coordinación / Región", yaxis_title="Índice de Copiado Interno (%)", yaxis=dict(range=[0, 110]), margin=dict(t=50, b=80, l=40, r=20))
+    st.plotly_chart(fig_reg_copia, use_container_width=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 3. ÍNDICE DE AUTORREPETICIÓN POR REPRESENTANTE
+    # ==========================================
+    st.subheader("3. Auditoría de Calidad: Índice de Autorrepetición por Representante")
+    st.markdown("<span style='color: #718096;'>Evaluación estricta de cuántas veces cada representante recicla sus propios comentarios entre sus visitas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    total_comentarios = len(df_unique)
+    comentarios_repetidos = int(df_unique['Es_Repetido'].sum())
+    pct_copia = (comentarios_repetidos / total_comentarios * 100) if total_comentarios > 0 else 0
+    
+    ckpi1, ckpi2, ckpi3 = st.columns(3)
+    ckpi1.metric("Visitas Únicas Evaluadas", f"{total_comentarios:,}")
+    ckpi2.metric("Comentarios Autorrepetidos", f"{comentarios_repetidos:,}")
+    ckpi3.metric("% Índice Global de Autorrepetición", f"{pct_copia:.1f}%")
+    st.markdown("---")
+    
+    rep_copia = df_unique.groupby(col_rep).agg(Total_Visitas=(col_visita, 'count'), Comentarios_Repetidos=('Es_Repetido', lambda x: int(x.sum()))).reset_index()
+    rep_copia.columns = ['Representante', 'Total_Visitas', 'Comentarios_Repetidos']
+    rep_copia['Pct_Copia'] = (rep_copia['Comentarios_Repetidos'] / rep_copia['Total_Visitas'] * 100).round(1)
+    rep_copia = rep_copia.sort_values(by='Pct_Copia', ascending=True)
+    
+    altura_grafico = max(450, len(rep_copia) * 25)
+    
+    fig_bar_copia = px.bar(
+        rep_copia, x='Pct_Copia', y='Representante', text='Pct_Copia', template='plotly_white',
+        title="<b>Índice de Autorrepetición (%) por Representante</b>",
+        color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#3182CE'], [0.31, '#E53E3E'], [1.0, '#9B2C2C']],
+        range_color=[0, 100], orientation='h'
+    )
+    fig_bar_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=11)
+    fig_bar_copia.update_layout(
+        paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=altura_grafico,
+        xaxis_title="Índice de Autorrepetición (%)", yaxis_title="Representante",
+        xaxis=dict(range=[0, 115]), margin=dict(t=50, b=50, l=150, r=20)
+    )
+    st.plotly_chart(fig_bar_copia, use_container_width=True)
+    
+    with st.expander("Ver listado de visitas únicas con comentarios repetidos"):
+        cols_ver = [c for c in [col_reg, col_rep, col_fecha, col_med, col_com] if c is not None]
+        st.dataframe(df_unique[df_unique['Es_Repetido'] == True][cols_ver].head(50), use_container_width=True, hide_index=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 4. AUDITORÍA DE CALIDAD METODOLÓGICA
+    # ==========================================
+    st.subheader("4. Auditoría de Calidad Metodológica (Técnica de Ventas - Visitas Únicas)")
+    st.markdown("<span style='color: #718096;'>Evaluación inteligente de la Fase 2 (Comentarios) y Fase 1/3 (Objetivos) con penalización automática a Alerta ante registros con copy-paste.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    df_audit_tec = df_unique.copy()
+    df_audit_tec['Com_Text'] = df_audit_tec[col_com].fillna('').astype(str).str.strip()
+    df_audit_tec['Obj_Text'] = df_audit_tec[col_obj].fillna('').astype(str).str.strip()
+    
+    palabras_prohibidas_com = ['', '-', 'nan', 'none', 'nat', '0', 'ok', 'bien', 'excelente', 'sin novedad', 'atendió bien']
+    
+    def calificar_y_justificar_comentario_flexible(txt, es_rep):
+        t_low = txt.lower()
+        if t_low in palabras_prohibidas_com or len(txt) < 8:
+            return "Alerta: Vacío o Genérico", "El comentario está vacío o usa expresiones genéricas."
+        if es_rep:
+            return "Alerta: Penalizado por Copy-Paste", "El texto está repetido idénticamente en múltiples visitas, se invalida."
+        palabras_alta_calidad = ['acepta', 'indiferente', 'objeción', 'objecion', 'escepticismo', 'evasivo', 'acuerdo', 'compromiso', 'diferencia', 'valor', 'claro', 'dudas', 'explica', 'explicó', 'habla', 'habló', 'revisa', 'revisó', 'conoce', 'conoció', 'prescribe', 'prescribirá']
+        if any(w in t_low for w in palabras_alta_calidad):
+            return "Alta Calidad (Técnica Aplicada)", "El comentario evidencia de forma sólida la Fase 2."
+        else:
+            return "Regular (Superficial)", "El texto relata la visita pero carece de profundidad."
+
+    palabras_actividades = ['entregar', 'visitar', 'saludar', 'llamar', 'dejar', 'muestra', 'material', 'obsequio']
+    
+    def calificar_y_justificar_objetivo(txt):
+        t_low = txt.lower()
+        if t_low in palabras_prohibidas_com or len(txt) < 8:
+            return "Alerta: Sin Objetivo Definido", "El campo de objetivo está vacío."
+        elif any(t_low.startswith(act) for act in palabras_actividades):
+            return "Alerta: Confunde Actividad", "Describe una tarea logística en lugar de un comportamiento SMART."
+        elif any(w in t_low for w in ['iniciar', 'reiniciar', 'aumentar', 'sostener', 'mantener', 'reemplazar', 'posicionar', 'evaluar', 'prescripción', 'uso']):
+            return "Alta Calidad (SMART)", "El objetivo está formulado correctamente."
+        else:
+            return "Regular (Poco Específico)", "El objetivo menciona una intención pero carece de precisión."
+
+    res_com = [calificar_y_justificar_comentario_flexible(row['Com_Text'], row['Es_Repetido']) for _, row in df_audit_tec.iterrows()]
+    df_audit_tec['Calidad_Comentario'] = [r[0] for r in res_com]
+    df_audit_tec['Justificacion_Comentario'] = [r[1] for r in res_com]
+
+    res_obj = df_audit_tec['Obj_Text'].apply(calificar_y_justificar_objetivo)
+    df_audit_tec['Calidad_Objetivo'] = [r[0] for r in res_obj]
+    df_audit_tec['Justificacion_Objetivo'] = [r[1] for r in res_obj]
+    
+    def calificacion_global(row):
+        c = row['Calidad_Comentario']
+        o = row['Calidad_Objetivo']
+        if 'Alerta' in c or 'Alerta' in o: return "Riesgo Metodológico (Alerta)"
+        elif 'Regular' in c or 'Regular' in o: return "En Proceso de Apropiación"
+        else: return "Visita Sobresaliente (Dominada)"
+
+    df_audit_tec['Estado_Metodologico'] = df_audit_tec.apply(calificacion_global, axis=1)
+    
+    total_v_audit = len(df_audit_tec)
+    sobresalientes = len(df_audit_tec[df_audit_tec['Estado_Metodologico'] == "Visita Sobresaliente (Dominada)"])
+    alertas = len(df_audit_tec[df_audit_tec['Estado_Metodologico'] == "Riesgo Metodológico (Alerta)"])
+    
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Visitas Únicas Evaluadas", f"{total_v_audit:,}")
+    m2.metric("Visitas Sobresalientes", f"{sobresalientes:,}", f"{(sobresalientes/total_v_audit*100):.1f}%")
+    m3.metric("Visitas en Alerta (Riesgo)", f"{alertas:,}", f"{(alertas/total_v_audit*100):.1f}%", delta_color="inverse")
+    st.markdown("---")
+    
+    df_rep_metodo = df_audit_tec.groupby([col_rep, 'Estado_Metodologico'], as_index=False).agg(Total=(col_visita, 'count'))
+    df_rep_metodo.columns = ['Representante', 'Estado_Metodologico', 'Total']
+    df_rep_totales = df_rep_metodo.groupby('Representante', as_index=False).agg(Total_Rep=('Total', 'sum'))
+    df_rep_metodo = pd.merge(df_rep_metodo, df_rep_totales, on='Representante')
+    df_rep_metodo['Porcentaje'] = (df_rep_metodo['Total'] / df_rep_metodo['Total_Rep'] * 100).round(1)
+    
+    def formato_etiqueta(row):
+        if row['Porcentaje'] >= 5.0: return f"{row['Total']} ({row['Porcentaje']}%)"
+        return ""
+
+    df_rep_metodo['Texto_Barra'] = df_rep_metodo.apply(formato_etiqueta, axis=1)
+    
+    fig_metodo = px.bar(
+        df_rep_metodo, x='Total', y='Representante', color='Estado_Metodologico', barmode='stack', text='Texto_Barra', template='plotly_white',
+        title="<b>Adopción de la Técnica de Ventas por Representante</b>",
+        color_discrete_map={'Visita Sobresaliente (Dominada)': '#2ECC71', 'En Proceso de Apropiación': '#3182CE', 'Riesgo Metodológico (Alerta)': '#E53E3E'},
+        orientation='h'
+    )
+    fig_metodo.update_traces(textposition='inside', insidetextanchor='middle', textfont_size=11)
+    fig_metodo.update_layout(
+        paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=max(450, len(representantes)*25),
+        xaxis_title="Cantidad de Visitas Únicas", yaxis_title="Representante",
+        margin=dict(t=50, b=50, l=150, r=40)
+    )
+    st.plotly_chart(fig_metodo, use_container_width=True)
+    
+    with st.expander("🔍 Ver detalle completo de auditoría (por Visita Única) con filtros de calidad y representante"):
+        col_f_niv, col_f_rep, col_f_btn = st.columns([1.5, 1.5, 1])
+        niveles_disponibles = ['Todos'] + sorted(df_audit_tec['Estado_Metodologico'].unique().tolist())
+        with col_f_niv:
+            filtro_nivel_sel = st.selectbox("Filtrar por Nivel Metodológico", options=niveles_disponibles, key="select_filtro_nivel")
+            
+        reps_disponibles_audit = ['Todos'] + sorted(df_audit_tec[col_rep].dropna().unique().tolist())
+        with col_f_rep:
+            filtro_rep_sel = st.selectbox("Filtrar por Representante", options=reps_disponibles_audit, key="select_filtro_rep_audit")
+            
+        df_tabla_filtrada = df_audit_tec.copy()
+        if filtro_nivel_sel != 'Todos': df_tabla_filtrada = df_tabla_filtrada[df_tabla_filtrada['Estado_Metodologico'] == filtro_nivel_sel]
+        if filtro_rep_sel != 'Todos': df_tabla_filtrada = df_tabla_filtrada[df_tabla_filtrada[col_rep] == filtro_rep_sel]
+            
+        cols_tabla = [c for c in [col_rep, col_visita, col_fecha, col_med, col_com, 'Calidad_Comentario', 'Justificacion_Comentario', col_obj, 'Calidad_Objetivo', 'Justificacion_Objetivo', 'Estado_Metodologico'] if c is not None]
+        
+        with col_f_btn:
+            st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+            def convertir_df_a_excel(df_export):
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df_export.to_excel(writer, index=False, sheet_name='Detalle_Filtrado')
+                return output.getvalue()
+
+            excel_filtrado = convertir_df_a_excel(df_tabla_filtrada[cols_tabla])
+            st.download_button(
+                label="📥 Descargar Tabla en Excel",
+                data=excel_filtrado,
+                file_name=f"Detalle_Visitas_Essity_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="btn_excel_inline",
+                use_container_width=True
+            )
+
+        st.dataframe(df_tabla_filtrada[cols_tabla], use_container_width=True, hide_index=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 5. FOCALIZACIÓN DE ACOMPAÑAMIENTOS POR COORDINACIÓN
+    # ==========================================
+    st.subheader("5. Focalización de Acompañamientos por Coordinación")
+    st.markdown("<span style='color: #718096;'>Conteo de visitas con acompañamiento real de coordinador registradas en el ciclo.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if col_acomp and col_acomp in df_unique.columns:
+        df_acompañadas = df_unique[df_unique[col_acomp].notna() & (df_unique[col_acomp].astype(str).str.strip() != '')].copy()
