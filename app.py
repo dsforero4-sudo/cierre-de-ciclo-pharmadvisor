@@ -101,7 +101,8 @@ def procesar_archivo_impactos(file):
         specialties = []
         curr_spec = "GENERAL"
         for val in row9:
-            if pd.notna(val) and str(val).strip() != '': curr_spec = str(val).strip()
+            if pd.notna(val) and str(val).strip() != '': 
+                curr_spec = str(val).strip()
             specialties.append(curr_spec)
             
         records = []
@@ -132,10 +133,19 @@ def procesar_archivo_impactos(file):
                     try:
                         esp_val = float(imp_esp)
                         real_val = float(imp_real) if pd.notna(imp_real) and str(imp_real).strip() != '-' else 0.0
-                        records.append({'Región': coordinacion, 'Representante_Raw': rep_text, 'Producto': producto, 'Especialidad': spec, 'Imp_Esp': esp_val, 'Imp_Real': real_val})
-                    except: pass
+                        records.append({
+                            'Región': coordinacion, 
+                            'Representante_Raw': rep_text, 
+                            'Producto': producto, 
+                            'Especialidad': spec, 
+                            'Imp_Esp': esp_val, 
+                            'Imp_Real': real_val
+                        })
+                    except: 
+                        pass
         return pd.DataFrame(records)
-    except Exception as e: return None
+    except Exception as e: 
+        return None
 
 df_visitas = None
 source_file = uploaded_file if uploaded_file is not None else ('listado_visitas_2026-09-07_11-44-08.xlsx' if os.path.exists('listado_visitas_2026-09-07_11-44-08.xlsx') else None)
@@ -196,4 +206,142 @@ if df_visitas is not None:
     
     lineas = sorted(df_f2[col_lin].dropna().unique()) if col_lin else []
     selected_lineas = st.sidebar.multiselect("Línea Estratégica", options=lineas, default=lineas, key="filtro_lin")
-    df_f3 = df_f2[df_f2[col_lin].isin(selected_line
+    df_f3 = df_f2[df_f2[col_lin].isin(selected_lineas)] if col_lin and selected_lineas else df_f2
+    
+    representantes = sorted(df_f3[col_rep].dropna().unique()) if col_rep else []
+    selected_reps = st.sidebar.multiselect("Representante", options=representantes, default=representantes, key="filtro_rep")
+    df_filtered = df_f3[df_f3[col_rep].isin(selected_reps)] if col_rep and selected_reps else df_f3
+    
+    df_unique = df_filtered.drop_duplicates(subset=[col_visita]).copy()
+    
+    df_unique['Comentario_Clean'] = df_unique[col_com].fillna('').astype(str).str.strip().str.lower()
+    df_unique['Rep_Comentario_Count'] = df_unique.groupby([col_rep, 'Comentario_Clean'])[col_visita].transform('count')
+    
+    def check_repetido_individual(row):
+        com = row['Comentario_Clean']
+        if com in ['', 'nan', 'none', '-']: return False
+        return row['Rep_Comentario_Count'] > 1
+
+    df_unique['Es_Repetido'] = df_unique.apply(check_repetido_individual, axis=1)
+
+    # ==========================================
+    # 1. DISTRIBUCIÓN DE VISITAS ÚNICAS POR FRANJA HORARIA
+    # ==========================================
+    st.subheader("🕒 1. Distribución de Visitas Únicas por Franja Horaria")
+    st.markdown("<span style='color: #9AA5B1;'>Auditoría global de puntualidad y franja de registro en visitas únicas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    def parse_hour_slot(hora_str):
+        try:
+            dt = pd.to_datetime(str(hora_str), format='%H:%M:%S', errors='coerce')
+            if pd.isna(dt): return 'No Registrada'
+            h = dt.hour
+            if 5 <= h < 12: return '1. Mañana (05:00 - 12:00)'
+            elif 12 <= h < 18: return '2. Tarde (12:00 - 18:00)'
+            else: return '3. Noche / Madrugada (18:00 - 05:00)'
+        except: return 'No Registrada'
+
+    if col_hora and col_hora in df_unique.columns:
+        df_unique['Franja_Horaria'] = df_unique[col_hora].apply(parse_hour_slot)
+        total_visitas = len(df_unique)
+        nocturnas_fuera = len(df_unique[df_unique['Franja_Horaria'] == '3. Noche / Madrugada (18:00 - 05:00)'])
+        pct_nocturnas = (nocturnas_fuera / total_visitas * 100) if total_visitas > 0 else 0
+
+        kpi1, kpi2, kpi3 = st.columns(3)
+        kpi1.metric("Total Visitas Únicas", f"{total_visitas:,}")
+        kpi2.metric("Registros en Noche / Madrugada", f"{nocturnas_fuera:,}")
+        kpi3.metric("% Alerta Acumulación Nocturna", f"{pct_nocturnas:.1f}%")
+        st.markdown("---")
+
+        franja_counts = df_unique['Franja_Horaria'].value_counts().reset_index()
+        franja_counts.columns = ['Franja Horaria', 'Total Visitas']
+        franja_counts = franja_counts.sort_values(by='Franja Horaria')
+        color_map = {
+            '1. Mañana (05:00 - 12:00)': '#2ECC71', 
+            '2. Tarde (12:00 - 18:00)': '#F39C12', 
+            '3. Noche / Madrugada (18:00 - 05:00)': '#E74C3C', 
+            'No Registrada': '#95A5A6'
+        }
+
+        fig_pie = px.pie(franja_counts, names='Franja Horaria', values='Total Visitas', hole=0.5, template='plotly_dark', title="Semáforo de Oportunidad en el Registro de Visitas", color='Franja Horaria', color_discrete_map=color_map)
+        fig_pie.update_traces(textinfo='percent+value', textposition='inside', insidetextorientation='horizontal', textfont_size=13)
+        fig_pie.update_layout(paper_bgcolor='#1C202C', plot_bgcolor='#2D3346', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20))
+        st.plotly_chart(fig_pie, use_container_width=True)
+    else:
+        st.info("ℹ️ No se detectó la columna de hora de registro para la distribución de franjas horarias.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
+    # ==========================================
+    st.subheader("🏢 2. Comparativa del % de Copiado Interno por Coordinación")
+    st.markdown("<span style='color: #9AA5B1;'>Comparativo del índice de autorrepetición agrupado por cada región o coordinación.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    df_reg_copia = df_unique.groupby(col_reg).agg(Total_Visitas=(col_visita, 'count'), Comentarios_Repetidos=('Es_Repetido', lambda x: int(x.sum()))).reset_index()
+    df_reg_copia.columns = ['Región', 'Total_Visitas', 'Comentarios_Repetidos']
+    df_reg_copia['Pct_Copia'] = (df_reg_copia['Comentarios_Repetidos'] / df_reg_copia['Total_Visitas'] * 100).round(1)
+    df_reg_copia = df_reg_copia.sort_values(by='Pct_Copia', ascending=False)
+
+    fig_reg_copia = px.bar(df_reg_copia, x='Región', y='Pct_Copia', text='Pct_Copia', template='plotly_dark', title="Índice de Copiado Interno por Coordinación / Región", color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#F39C12'], [0.31, '#E74C3C'], [1.0, '#C0392B']], range_color=[0, 100])
+    fig_reg_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=12)
+    fig_reg_copia.update_layout(paper_bgcolor='#1C202C', plot_bgcolor='#2D3346', height=450, xaxis_title="Coordinación / Región", yaxis_title="Índice de Copiado Interno (%)", yaxis=dict(range=[0, 110]), margin=dict(t=50, b=80, l=40, r=20))
+    st.plotly_chart(fig_reg_copia, use_container_width=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 3. ÍNDICE DE AUTORREPETICIÓN POR REPRESENTANTE
+    # ==========================================
+    st.subheader("📋 3. Auditoría de Calidad: Índice de Autorrepetición por Representante")
+    st.markdown("<span style='color: #9AA5B1;'>Evaluación estricta de cuántas veces cada representante recicla sus propios comentarios entre sus visitas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    total_comentarios = len(df_unique)
+    comentarios_repetidos = int(df_unique['Es_Repetido'].sum())
+    pct_copia = (comentarios_repetidos / total_comentarios * 100) if total_comentarios > 0 else 0
+    
+    ckpi1, ckpi2, ckpi3 = st.columns(3)
+    ckpi1.metric("Visitas Únicas Evaluadas", f"{total_comentarios:,}")
+    ckpi2.metric("Comentarios Autorrepetidos", f"{comentarios_repetidos:,}")
+    ckpi3.metric("% Índice Global de Autorrepetición", f"{pct_copia:.1f}%")
+    st.markdown("---")
+    
+    rep_copia = df_unique.groupby(col_rep).agg(Total_Visitas=(col_visita, 'count'), Comentarios_Repetidos=('Es_Repetido', lambda x: int(x.sum()))).reset_index()
+    rep_copia.columns = ['Representante', 'Total_Visitas', 'Comentarios_Repetidos']
+    rep_copia['Pct_Copia'] = (rep_copia['Comentarios_Repetidos'] / rep_copia['Total_Visitas'] * 100).round(1)
+    rep_copia = rep_copia.sort_values(by='Pct_Copia', ascending=True)
+    
+    altura_grafico = max(450, len(rep_copia) * 25)
+    
+    fig_bar_copia = px.bar(rep_copia, x='Pct_Copia', y='Representante', text='Pct_Copia', template='plotly_dark', title="<b>Índice de Autorrepetición (%) por Representante (Copy-Paste Interno)</b>", color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#F39C12'], [0.31, '#E74C3C'], [1.0, '#C0392B']], range_color=[0, 100], orientation='h')
+    fig_bar_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=11)
+    fig_bar_copia.update_layout(paper_bgcolor='#1C202C', plot_bgcolor='#2D3346', height=altura_grafico, xaxis_title="Índice de Autorrepetición (%)", yaxis_title="Representante", xaxis=dict(range=[0, 115]), yaxis={'categoryorder': 'total ascending'}, margin=dict(t=50, b=50, l=150, r=20))
+    st.plotly_chart(fig_bar_copia, use_container_width=True)
+    
+    with st.expander("Ver listado de visitas únicas con comentarios repetidos"):
+        cols_ver = [c for c in [col_reg, col_rep, col_fecha, col_med, col_com] if c is not None]
+        st.dataframe(df_unique[df_unique['Es_Repetido'] == True][cols_ver].head(50), use_container_width=True, hide_index=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 4. AUDITORÍA DE CALIDAD METODOLÓGICA
+    # ==========================================
+    st.subheader("🎓 4. Auditoría de Calidad Metodológica (Técnica de Ventas - Visitas Únicas)")
+    st.markdown("<span style='color: #9AA5B1;'>Evaluación inteligente de la Fase 2 (Comentarios) y Fase 1/3 (Objetivos) con penalización automática a Alerta ante registros con copy-paste.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    df_audit_tec = df_unique.copy()
+    df_audit_tec['Com_Text'] = df_audit_tec[col_com].fillna('').astype(str).str.strip()
+    df_audit_tec['Obj_Text'] = df_audit_tec[col_obj].fillna('').astype(str).str.strip()
+    
+    palabras_prohibidas_com = ['', '-', 'nan', 'none', 'nat', '0', 'ok', 'bien', 'excelente', 'sin novedad', 'atendió bien']
+    
+    def calificar_y_justificar_comentario_flexible(txt, es_rep):
+        t_low = txt.lower()
+        if t_low in palabras_prohibidas_com or len(txt) < 8:
+            return '🔴 Alerta: Vacío o Genérico', 'El comentario está vacío o usa expresiones genéricas ("bien", "ok", "sin novedad").'
+        if es_rep:
+            return '🔴 Alerta:
