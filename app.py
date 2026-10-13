@@ -49,15 +49,24 @@ if not verificar_password():
     st.stop()
 
 # ==========================================
-# APLICACIÓN PRINCIPAL (ESTILO ESSITY / LEUKOACADEMY)
+# APLICACIÓN PRINCIPAL (ESTILO ESSITY / LEUKOACADEMY CON ACENTO MAGENTA)
 # ==========================================
 st.markdown("""
     <style>
     .stApp { background-color: #F4F6F9; color: #2C3E50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .ph-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #E2E8F0; margin-bottom: 25px; background: #FFFFFF; padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    
+    /* Forzar acento magenta en la barra lateral */
+    section[data-testid="stSidebar"] { border-right: 3px solid #E6007E; background-color: #1E222B; }
+    section[data-testid="stSidebar"] .stSubheader, section[data-testid="stSidebar"] label { color: #FFFFFF !important; }
+    
+    .ph-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 3px solid #E6007E; margin-bottom: 25px; background: #FFFFFF; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .ph-title { color: #E6007E; font-size: 26px; font-weight: bold; margin: 0; }
+    
+    /* Títulos de sección con acento corporativo magenta */
+    h2 { color: #E6007E !important; font-size: 20px !important; font-weight: 700 !important; }
+    
     .section-divider { margin-top: 40px; margin-bottom: 40px; border: 0; height: 1px; background: #CBD5E0; }
-    div[data-testid="stMetric"] { background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    div[data-testid="stMetric"] { background-color: #FFFFFF; border-left: 4px solid #E6007E !important; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     </style>
 """, unsafe_allow_html=True)
 
@@ -514,99 +523,4 @@ if df_visitas is not None:
     # ==========================================
     # 7. AUDITORÍA AVANZADA DE MUESTRAS MÉDICAS Y RECEPTIVIDAD
     # ==========================================
-    st.subheader("7. Auditoría Avanzada de Muestras Médicas y Receptividad por Producto")
-    st.markdown("<span style='color: #718096;'>Análisis de unidades entregadas y receptividad o actitud médica registrada.</span>", unsafe_allow_html=True)
-    st.markdown("---")
-
-    if col_muestra and col_cant_muestra and col_muestra in df_filtered.columns:
-        df_muestras = df_filtered.dropna(subset=[col_muestra]).copy()
-        df_muestras['Muestra_Clean'] = df_muestras[col_muestra].astype(str).str.strip()
-        excluidos_muestras = ['', '-', 'nan', 'none', 'nat', '0', 'false', 'no', 'sin muestra', 'ninguna']
-        df_muestras = df_muestras[~df_muestras['Muestra_Clean'].str.lower().isin(excluidos_muestras)]
-        df_muestras['Cantidad_Num'] = pd.to_numeric(df_muestras[col_cant_muestra], errors='coerce').fillna(1)
-
-        df_m_agrup = df_muestras.groupby('Muestra_Clean', as_index=False).agg(Total_Unidades=('Cantidad_Num', 'sum')).sort_values(by='Total_Unidades', ascending=False).head(10)
-
-        if len(df_m_agrup) > 0:
-            fig_muestras = px.bar(df_m_agrup, x='Total_Unidades', y='Muestra_Clean', text='Total_Unidades', template='plotly_white', title="Top Muestras Médicas / Materiales Entregados", color='Total_Unidades', color_continuous_scale='Purples', orientation='h')
-            fig_muestras.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=11)
-            fig_muestras.update_layout(paper_bgcolor='#FFFFFF', plot_bgcolor='#FFFFFF', height=420, xaxis_title="Total Unidades Entregadas", yaxis_title="Material / Muestra", margin=dict(t=50, b=50, l=150, r=20))
-            st.plotly_chart(fig_muestras, use_container_width=True)
-        else:
-            st.info("No hay registros de muestras médicas válidas.")
-    else:
-        st.info("Columnas de muestras médicas no identificadas automáticamente.")
-
-    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
-    st.subheader("Generación de Reporte Ejecutivo Gerencial Essity")
-    st.markdown("<span style='color: #718096;'>Genera un informe analítico completo incrustando las visualizaciones comerciales para directivos.</span>", unsafe_allow_html=True)
-    
-    if st.button("Generar Informe Ejecutivo con Gráficas"):
-        html_chart_copia = fig_bar_copia.to_html(full_html=False, include_plotlyjs='cdn')
-        html_chart_metodo = fig_metodo.to_html(full_html=False, include_plotlyjs='cdn')
-        
-        pct_alertas = (alertas / total_v_audit * 100) if total_v_audit > 0 else 0
-        
-        rep_resumen = df_audit_tec.groupby(col_rep).agg(Visitas=(col_visita, 'count'), Alertas=('Estado_Metodologico', lambda x: (x == 'Riesgo Metodológico (Alerta)').sum()), Copia=('Es_Repetido', 'sum')).reset_index()
-        rep_resumen.columns = ['Representante', 'Visitas', 'Alertas', 'Copia']
-        rep_resumen['Pct_Riesgo'] = (rep_resumen['Alertas'] / rep_resumen['Visitas'] * 100).round(1)
-        criticos = rep_resumen.sort_values(by='Pct_Riesgo', ascending=False).head(5)
-        
-        tabla_html_rows = ""
-        for _, r in criticos.iterrows():
-            tabla_html_rows += "<tr><td>" + str(r['Representante']) + "</td><td>" + str(r['Visitas']) + "</td><td>" + str(r['Alertas']) + "</td><td>" + str(r['Pct_Riesgo']) + "%</td></tr>"
-        
-        css_estilos = """
-        <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #2C3E50; margin: 40px; line-height: 1.6; background-color: #F8F9FA; }
-        h1 { color: #E6007E; border-bottom: 3px solid #E6007E; padding-bottom: 8px; font-size: 24px; }
-        h2 { color: #2D3346; margin-top: 40px; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 18px; }
-        .metrics-container { display: flex; justify-content: space-between; margin-bottom: 25px; }
-        .metric-card { background: #FFFFFF; border-left: 4px solid #E6007E; padding: 15px; width: 22%; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .metric-title { font-size: 11px; color: #7F8C8D; text-transform: uppercase; font-weight: bold; }
-        .metric-value { font-size: 18px; color: #2C3E50; font-weight: bold; margin-top: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; background: #FFFFFF; }
-        th, td { border: 1px solid #DDDDDD; padding: 10px; text-align: left; font-size: 12px; }
-        th { background-color: #2D3346; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .chart-container { margin: 30px 0; background: #FFFFFF; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .recommendation-box { background: #FFF5F9; border-left: 4px solid #E6007E; padding: 20px; border-radius: 4px; margin-top: 30px; }
-        </style>
-        """
-
-        card_1 = "<div class='metric-card'><div class='metric-title'>Visitas Únicas</div><div class='metric-value'>" + f"{total_v_audit:,}" + "</div></div>"
-        card_2 = "<div class='metric-card'><div class='metric-title'>Índice de Clonación</div><div class='metric-value'>" + f"{pct_copia:.1f}%" + "</div></div>"
-        card_3 = "<div class='metric-card'><div class='metric-title'>Visitas Sobresalientes</div><div class='metric-value'>" + f"{sobresalientes:,} ({((sobresalientes/total_v_audit*100) if total_v_audit > 0 else 0):.1f}%)" + "</div></div>"
-        card_4 = "<div class='metric-card'><div class='metric-title'>Riesgo / Alertas</div><div class='metric-value'>" + f"{alertas:,} ({pct_alertas:.1f}%)" + "</div></div>"
-
-        reporte_html = (
-            "<!DOCTYPE html><html><head><meta charset='utf-8'>" + css_estilos + "</head><body>"
-            "<h1>ESSITY / LEUKOACADEMY | INFORME EJECUTIVO DE VALIDACIÓN METODOLÓGICA</h1>"
-            "<p><b>Cliente / Cuenta:</b> " + str(cliente_input) + " | <b>Líneas / Segmento:</b> " + str(lineas_input) + "</p>"
-            "<p><b>Fecha de Emisión:</b> " + pd.Timestamp.now().strftime('%Y-%m-%d %H:%M') + " | <b>Segmento:</b> Programa Leukoacademy</p>"
-            "<h2>1. Resumen Ejecutivo del Ciclo</h2>"
-            "<div class='metrics-container'>" + card_1 + card_2 + card_3 + card_4 + "</div>"
-            "<h2>2. Hallazgos Analíticos y Visuales del Ciclo</h2>"
-            "<div class='chart-container'><b>Gráfica de Autorrepetición por Representante</b><br>" + html_chart_copia + "</div>"
-            "<div class='chart-container'><b>Gráfica de Calidad Metodológica</b><br>" + html_chart_metodo + "</div>"
-            "<h2>3. Representantes con Mayor Oportunidad de Acompañamiento (Top Riesgos)</h2>"
-            "<table><tr><th>Representante</th><th>Visitas Evaluadas</th><th>Registros en Alerta</th><th>% de Riesgo Metodológico</th></tr>" + tabla_html_rows + "</table>"
-            "<div class='recommendation-box'>"
-            "<h3 style='margin-top:0; color: #E6007E;'>4. Recomendaciones de Acción</h3>"
-            "<ol>"
-            "<li><b>Retroalimentación 1 a 1:</b> Programar sesiones de coaching con los asesores identificados con mayores índices de clonación en el programa Leukoacademy.</li>"
-            "<li><b>Alineación en Objetivos:</b> Reforzar que los objetivos redactados reflejen comportamientos de valor y no tareas rutinarias.</li>"
-            "</ol></div></body></html>"
-        )
-        
-        st.success("¡Informe ejecutivo Essity con gráficas generado exitosamente!")
-        st.download_button(
-            label="📥 Descargar Informe Ejecutivo Completo (HTML / Imprimible a PDF)",
-            data=reporte_html,
-            file_name=f"Informe_Gerencial_Essity_{pd.Timestamp.now().strftime('%Y%m%d')}.html",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        st.info("Impresión a PDF: Abre el archivo descargado en tu navegador web, presiona Ctrl + P (o Cmd + P en Mac) y selecciona 'Guardar como PDF'.")
-
-else:
-    st.info("Por favor carga el archivo de visitas en la barra lateral para iniciar el análisis del programa Leukoacademy.")
+    st.subheader("7. Auditoría Avanzada de M
