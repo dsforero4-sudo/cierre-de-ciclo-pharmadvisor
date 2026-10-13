@@ -227,40 +227,4 @@ if df_visitas is not None:
     # ==========================================
     # 1. DISTRIBUCIÓN DE VISITAS ÚNICAS POR FRANJA HORARIA
     # ==========================================
-    st.subheader("🕒 1. Distribución de Visitas Únicas por Franja Horaria")
-    st.markdown("<span style='color: #9AA5B1;'>Auditoría global de puntualidad y franja de registro en visitas únicas.</span>", unsafe_allow_html=True)
-    st.markdown("---")
-
-    def parse_hour_slot(hora_str):
-        try:
-            dt = pd.to_datetime(str(hora_str), format='%H:%M:%S', errors='coerce')
-            if pd.isna(dt): return 'No Registrada'
-            h = dt.hour
-            if 5 <= h < 12: return '1. Mañana (05:00 - 12:00)'
-            elif 12 <= h < 18: return '2. Tarde (12:00 - 18:00)'
-            else: return '3. Noche / Madrugada (18:00 - 05:00)'
-        except: return 'No Registrada'
-
-    if col_hora and col_hora in df_unique.columns:
-        df_unique['Franja_Horaria'] = df_unique[col_hora].apply(parse_hour_slot)
-        total_visitas = len(df_unique)
-        nocturnas_fuera = len(df_unique[df_unique['Franja_Horaria'] == '3. Noche / Madrugada (18:00 - 05:00)'])
-        pct_nocturnas = (nocturnas_fuera / total_visitas * 100) if total_visitas > 0 else 0
-
-        kpi1, kpi2, kpi3 = st.columns(3)
-        kpi1.metric("Total Visitas Únicas", f"{total_visitas:,}")
-        kpi2.metric("Registros en Noche / Madrugada", f"{nocturnas_fuera:,}")
-        kpi3.metric("% Alerta Acumulación Nocturna", f"{pct_nocturnas:.1f}%")
-        st.markdown("---")
-
-        franja_counts = df_unique['Franja_Horaria'].value_counts().reset_index()
-        franja_counts.columns = ['Franja Horaria', 'Total Visitas']
-        franja_counts = franja_counts.sort_values(by='Franja Horaria')
-        color_map = {
-            '1. Mañana (05:00 - 12:00)': '#2ECC71', 
-            '2. Tarde (12:00 - 18:00)': '#F39C12', 
-            '3. Noche / Madrugada (18:00 - 05:00)': '#E74C3C', 
-            'No Registrada': '#95A5A6'
-        }
-
-        fig_
+    st.subheader("🕒 1. Distribución de Vis
