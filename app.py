@@ -125,4 +125,45 @@ def procesar_archivo_impactos(file):
             for c_idx in range(2, len(row10), 3):
                 if c_idx >= df_raw.shape[1]: break
                 spec = specialties[c_idx]
-                imp_esp = df_raw
+                imp_esp = df_raw.iloc[idx, c_idx]
+                imp_real = df_raw.iloc[idx, c_idx + 1]
+                
+                if pd.notna(imp_esp) and str(imp_esp).strip() != '-' and str(imp_esp).strip() != '':
+                    try:
+                        esp_val = float(imp_esp)
+                        real_val = float(imp_real) if pd.notna(imp_real) and str(imp_real).strip() != '-' else 0.0
+                        records.append({'Región': coordinacion, 'Representante_Raw': rep_text, 'Producto': producto, 'Especialidad': spec, 'Imp_Esp': esp_val, 'Imp_Real': real_val})
+                    except: pass
+        return pd.DataFrame(records)
+    except Exception as e: return None
+
+df_visitas = None
+source_file = uploaded_file if uploaded_file is not None else ('listado_visitas_2026-09-07_11-44-08.xlsx' if os.path.exists('listado_visitas_2026-09-07_11-44-08.xlsx') else None)
+
+if source_file is not None:
+    try:
+        xls = pd.ExcelFile(source_file)
+        hoja_seleccionada = st.sidebar.selectbox("Seleccione la Hoja de Visitas", options=xls.sheet_names, key="select_hoja_excel")
+        df_visitas = cargar_datos_hoja(source_file, hoja_seleccionada)
+    except Exception as e:
+        df_visitas = None
+
+df_impactos = procesar_archivo_impactos(uploaded_impactos)
+
+if df_visitas is not None:
+    def buscar_columna(df, posibles_nombres):
+        cols_lower = {c.lower().strip(): c for c in df.columns}
+        for p in posibles_nombres:
+            if p.lower().strip() in cols_lower:
+                return cols_lower[p.lower().strip()]
+        return None
+
+    col_reg = buscar_columna(df_visitas, ['Región', 'Region', 'Coordinación', 'Coordinacion'])
+    col_ciclo = buscar_columna(df_visitas, ['Ciclo', 'Periodo', 'Mes'])
+    col_lin = buscar_columna(df_visitas, ['Línea', 'Linea', 'Estrategia'])
+    col_rep = buscar_columna(df_visitas, ['Representante', 'Asesor', 'Ejecutivo'])
+    col_visita = buscar_columna(df_visitas, ['Cod. visita', 'Cod visita', 'Código visita', 'Codigo visita', 'Id visita', 'Visita'])
+    col_fecha = buscar_columna(df_visitas, ['Fecha visita', 'Fecha', 'Date'])
+    col_hora = buscar_columna(df_visitas, ['Hora digitado', 'Hora', 'Time'])
+    col_med = buscar_columna(df_visitas, ['Nombre farmacia o cliente', 'Farmacia', 'Médicos', 'Medicos', 'Cliente', 'Institución', 'Institucion', 'Nombre'])
+    col
