@@ -317,31 +317,4 @@ if df_visitas is not None:
     
     fig_bar_copia = px.bar(rep_copia, x='Pct_Copia', y='Representante', text='Pct_Copia', template='plotly_dark', title="<b>Índice de Autorrepetición (%) por Representante (Copy-Paste Interno)</b>", color='Pct_Copia', color_continuous_scale=[[0.0, '#2ECC71'], [0.05, '#2ECC71'], [0.30, '#F39C12'], [0.31, '#E74C3C'], [1.0, '#C0392B']], range_color=[0, 100], orientation='h')
     fig_bar_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=11)
-    fig_bar_copia.update_layout(paper_bgcolor='#1C202C', plot_bgcolor='#2D3346', height=altura_grafico, xaxis_title="Índice de Autorrepetición (%)", yaxis_title="Representante", xaxis=dict(range=[0, 115]), yaxis={'categoryorder': 'total ascending'}, margin=dict(t=50, b=50, l=150, r=20))
-    st.plotly_chart(fig_bar_copia, use_container_width=True)
-    
-    with st.expander("Ver listado de visitas únicas con comentarios repetidos"):
-        cols_ver = [c for c in [col_reg, col_rep, col_fecha, col_med, col_com] if c is not None]
-        st.dataframe(df_unique[df_unique['Es_Repetido'] == True][cols_ver].head(50), use_container_width=True, hide_index=True)
-
-    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
-
-    # ==========================================
-    # 4. AUDITORÍA DE CALIDAD METODOLÓGICA
-    # ==========================================
-    st.subheader("🎓 4. Auditoría de Calidad Metodológica (Técnica de Ventas - Visitas Únicas)")
-    st.markdown("<span style='color: #9AA5B1;'>Evaluación inteligente de la Fase 2 (Comentarios) y Fase 1/3 (Objetivos) con penalización automática a Alerta ante registros con copy-paste.</span>", unsafe_allow_html=True)
-    st.markdown("---")
-    
-    df_audit_tec = df_unique.copy()
-    df_audit_tec['Com_Text'] = df_audit_tec[col_com].fillna('').astype(str).str.strip()
-    df_audit_tec['Obj_Text'] = df_audit_tec[col_obj].fillna('').astype(str).str.strip()
-    
-    palabras_prohibidas_com = ['', '-', 'nan', 'none', 'nat', '0', 'ok', 'bien', 'excelente', 'sin novedad', 'atendió bien']
-    
-    def calificar_y_justificar_comentario_flexible(txt, es_rep):
-        t_low = txt.lower()
-        if t_low in palabras_prohibidas_com or len(txt) < 8:
-            return '🔴 Alerta: Vacío o Genérico', 'El comentario está vacío o usa expresiones genéricas ("bien", "ok", "sin novedad").'
-        if es_rep:
-            return '🔴 Alerta:
+    fig_bar_copia.update_layout(paper_bgcolor='#1C202C', plot_bgcolor='#2D3346', height=altura_grafico, xaxis_title="Índice de Autorrepetición (%)", yaxis_title="Representante", xaxis=dict(range=[0, 115]), yaxis={'categoryorder':
