@@ -574,11 +574,39 @@ if df_visitas is not None:
         </style>
         """
 
+        card_1 = "<div class='metric-card'><div class='metric-title'>Visitas Únicas</div><div class='metric-value'>" + f"{total_v_audit:,}" + "</div></div>"
+        card_2 = "<div class='metric-card'><div class='metric-title'>Índice de Clonación</div><div class='metric-value'>" + f"{pct_copia:.1f}%" + "</div></div>"
+        card_3 = "<div class='metric-card'><div class='metric-title'>Visitas Sobresalientes</div><div class='metric-value'>" + f"{sobresalientes:,} ({((sobresalientes/total_v_audit*100) if total_v_audit > 0 else 0):.1f}%)" + "</div></div>"
+        card_4 = "<div class='metric-card'><div class='metric-title'>Riesgo / Alertas</div><div class='metric-value'>" + f"{alertas:,} ({pct_alertas:.1f}%)" + "</div></div>"
+
         reporte_html = (
             "<!DOCTYPE html><html><head><meta charset='utf-8'>" + css_estilos + "</head><body>"
             "<h1>ESSITY / LEUKOACADEMY | INFORME EJECUTIVO DE VALIDACIÓN METODOLÓGICA</h1>"
             "<p><b>Cliente / Cuenta:</b> " + str(cliente_input) + " | <b>Líneas / Segmento:</b> " + str(lineas_input) + "</p>"
             "<p><b>Fecha de Emisión:</b> " + pd.Timestamp.now().strftime('%Y-%m-%d %H:%M') + " | <b>Segmento:</b> Programa Leukoacademy</p>"
             "<h2>1. Resumen Ejecutivo del Ciclo</h2>"
-            "<div class='metrics-container'>"
-            "<div class='metric-card'><div class='metric-title'>Visitas Únicas</div><div class='metric-value
+            "<div class='metrics-container'>" + card_1 + card_2 + card_3 + card_4 + "</div>"
+            "<h2>2. Hallazgos Analíticos y Visuales del Ciclo</h2>"
+            "<div class='chart-container'><b>Gráfica de Autorrepetición por Representante</b><br>" + html_chart_copia + "</div>"
+            "<div class='chart-container'><b>Gráfica de Calidad Metodológica</b><br>" + html_chart_metodo + "</div>"
+            "<h2>3. Representantes con Mayor Oportunidad de Acompañamiento (Top Riesgos)</h2>"
+            "<table><tr><th>Representante</th><th>Visitas Evaluadas</th><th>Registros en Alerta</th><th>% de Riesgo Metodológico</th></tr>" + tabla_html_rows + "</table>"
+            "<div class='recommendation-box'>"
+            "<h3 style='margin-top:0; color: #E6007E;'>4. Recomendaciones de Acción</h3>"
+            "<ol>"
+            "<li><b>Retroalimentación 1 a 1:</b> Programar sesiones de coaching con los asesores identificados con mayores índices de clonación en el programa Leukoacademy.</li>"
+            "<li><b>Alineación en Objetivos:</b> Reforzar que los objetivos redactados reflejen comportamientos de valor y no tareas rutinarias.</li>"
+            "</ol></div></body></html>"
+        )
+        
+        st.success("¡Informe ejecutivo Essity con gráficas generado exitosamente!")
+        st.download_button(
+            label="📥 Descargar Informe Ejecutivo Completo (HTML / Imprimible a PDF)",
+            data=reporte_html,
+            file_name=f"Informe_Gerencial_Essity_{pd.Timestamp.now().strftime('%Y%m%d')}.html",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        st.info("Impresión a PDF: Abre el archivo descargado en tu navegador web, presiona Ctrl + P (o Cmd + P en Mac) y selecciona 'Guardar como PDF'.")
+
+else:
+    st.info("Por favor carga el archivo de visitas en la barra lateral para iniciar el análisis del programa Leukoacademy.")
