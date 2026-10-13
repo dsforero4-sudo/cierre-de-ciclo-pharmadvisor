@@ -196,8 +196,4 @@ if df_visitas is not None:
     
     lineas = sorted(df_f2[col_lin].dropna().unique()) if col_lin else []
     selected_lineas = st.sidebar.multiselect("Línea Estratégica", options=lineas, default=lineas, key="filtro_lin")
-    df_f3 = df_f2[df_f2[col_lin].isin(selected_lineas)] if col_lin and selected_lineas else df_f2
-    
-    representantes = sorted(df_f3[col_rep].dropna().unique()) if col_rep else []
-    selected_reps = st.sidebar.multiselect("Representante", options=representantes, default=representantes, key="filtro_rep")
-    df_filtered = df_f3[df_f3[col_rep].isin(selected_reps
+    df_f3 = df_f2[df_f2[col_lin].isin(selected_line
