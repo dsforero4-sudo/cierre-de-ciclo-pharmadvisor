@@ -253,4 +253,31 @@ if df_visitas is not None:
 
     col_reg = buscar_columna(df_visitas, ['Región', 'Region', 'Coordinación', 'Coordinacion'])
     col_ciclo = buscar_columna(df_visitas, ['Ciclo', 'Periodo', 'Mes'])
-    col
+    col_lin = buscar_columna(df_visitas, ['Línea', 'Linea', 'Estrategia'])
+    col_rep = buscar_columna(df_visitas, ['Representante', 'Asesor', 'Ejecutivo'])
+    col_visita = buscar_columna(df_visitas, ['Cod. visita', 'Cod visita', 'Código visita', 'Codigo visita', 'Id visita', 'Visita'])
+    col_fecha = buscar_columna(df_visitas, ['Fecha visita', 'Fecha', 'Date'])
+    col_hora = buscar_columna(df_visitas, ['Hora digitado', 'Hora', 'Time'])
+    col_med = buscar_columna(df_visitas, ['Nombre farmacia o cliente', 'Farmacia', 'Médicos', 'Medicos', 'Cliente', 'Institución', 'Institucion', 'Nombre'])
+    col_obj = buscar_columna(df_visitas, ['Objetivo', 'Obj', 'Objetivos'])
+    col_com = buscar_columna(df_visitas, ['Comentario', 'Comentarios', 'Observación', 'Observacion'])
+    col_acomp = buscar_columna(df_visitas, ['Visita acompañada', 'Visita acompanada', 'Acompañada', 'Acompañamiento'])
+    col_muestra = buscar_columna(df_visitas, ['Material entregado', 'Muestra', 'Muestras'])
+    col_cant_muestra = buscar_columna(df_visitas, ['Cantidad de material', 'Cantidad', 'Cant'])
+    col_impacto_prod = buscar_columna(df_visitas, ['Impactos', 'Impacto', 'Producto'])
+
+    if not col_visita: 
+        col_visita = df_visitas.columns[0]
+    if not col_rep: 
+        col_rep = df_visitas.columns[0]
+    if not col_reg: 
+        col_reg = df_visitas.columns[0]
+    if not col_com: 
+        df_visitas['Comentario'] = '-'
+        col_com = 'Comentario'
+    if not col_obj: 
+        df_visitas['Objetivo'] = '-'
+        col_obj = 'Objetivo'
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("3.
