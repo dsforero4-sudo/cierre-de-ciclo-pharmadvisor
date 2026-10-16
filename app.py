@@ -367,7 +367,7 @@ if df_visitas is not None:
     # ==========================================
     # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
     # ==========================================
-    st.subheader("2. Comparativa del % de Copiado Interno por Coordinación")
+    st.subheader("2. Índice de Repetición de Comentarios")
     st.markdown("<span style='color: #B7BCC9;'>Comparativo del índice de autorrepetición agrupado por cada región o coordinación.</span>", unsafe_allow_html=True)
     st.markdown("---")
 
