@@ -5,7 +5,11 @@ import plotly.graph_objects as go
 import os
 import io
 
-st.set_page_config(page_title="Pharmadvisor | Validador Metodológico", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="Pharmadvisor | Validador Metodológico",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # ==========================================
 # MÓDULO DE SEGURIDAD Y CONTRASEÑA
@@ -22,7 +26,13 @@ def verificar_password():
     st.markdown("""
         <style>
         .stApp { background: #0E1118 !important; color: #FFFFFF !important; }
-        .login-card { background: #1B2440; backdrop-filter: blur(12px); padding: 40px; border-radius: 12px; border: 1px solid rgba(61, 214, 255, 0.3); max-width: 450px; margin: 80px auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .login-card { 
+            background: #1B2440; backdrop-filter: blur(12px); 
+            padding: 40px; border-radius: 12px; 
+            border: 1px solid rgba(61, 214, 255, 0.3); 
+            max-width: 450px; margin: 80px auto; text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
+        }
         .login-title { color: #FF2D8F; font-size: 26px; font-weight: bold; margin-bottom: 10px; }
         </style>
     """, unsafe_allow_html=True)
@@ -63,7 +73,9 @@ st.markdown("""
         border-right: 3px solid #FF2D8F !important;
         background-color: #0E1118 !important;
     }
-    section[data-testid="stSidebar"] .stSubheader, section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span {
+    section[data-testid="stSidebar"] .stSubheader, 
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] span {
         color: #FFFFFF !important;
     }
     
@@ -158,7 +170,8 @@ def cargar_datos_hoja(source, hoja_nombre):
 
 @st.cache_data
 def procesar_archivo_impactos(file):
-    if file is None: return None
+    if file is None: 
+        return None
     try:
         df_raw = pd.read_excel(file, sheet_name='Consulta', header=None)
         row9 = df_raw.iloc[9].values
@@ -177,20 +190,23 @@ def procesar_archivo_impactos(file):
         for idx in range(11, len(df_raw)):
             col0 = df_raw.iloc[idx, 0]
             col1 = df_raw.iloc[idx, 1]
-            if pd.isna(col0) or pd.isna(col1): continue
+            if pd.isna(col0) or pd.isna(col1): 
+                continue
             col0_str = str(col0).strip()
             
             if col0_str.lower().startswith("region") or col0_str.lower().startswith("región"):
                 current_region = col0_str.replace("Región", "").replace("Region", "").strip()
                 continue
-            if col0_str.startswith("DISTRITO"): continue
+            if col0_str.startswith("DISTRITO"): 
+                continue
             
             rep_text = col0_str
             producto = str(col1).strip()
             coordinacion = "COORDINACION CL" if "CL" in current_region.upper() or "CL" in rep_text.upper() or "ANTIOQUIA" in rep_text.upper() or "COSTA" in rep_text.upper() or "SANTANDER" in rep_text.upper() else "COORDINACION PS"
             
             for c_idx in range(2, len(row10), 3):
-                if c_idx >= df_raw.shape[1]: break
+                if c_idx >= df_raw.shape[1]: 
+                    break
                 spec = specialties[c_idx]
                 imp_esp = df_raw.iloc[idx, c_idx]
                 imp_real = df_raw.iloc[idx, c_idx + 1]
@@ -199,7 +215,14 @@ def procesar_archivo_impactos(file):
                     try:
                         esp_val = float(imp_esp)
                         real_val = float(imp_real) if pd.notna(imp_real) and str(imp_real).strip() != '-' else 0.0
-                        records.append({'Región': coordinacion, 'Representante_Raw': rep_text, 'Producto': producto, 'Especialidad': spec, 'Imp_Esp': esp_val, 'Imp_Real': real_val})
+                        records.append({
+                            'Región': coordinacion, 
+                            'Representante_Raw': rep_text, 
+                            'Producto': producto, 
+                            'Especialidad': spec, 
+                            'Imp_Esp': esp_val, 
+                            'Imp_Real': real_val
+                        })
                     except: 
                         pass
         return pd.DataFrame(records)
@@ -234,4 +257,163 @@ if df_visitas is not None:
     col_visita = buscar_columna(df_visitas, ['Cod. visita', 'Cod visita', 'Código visita', 'Codigo visita', 'Id visita', 'Visita'])
     col_fecha = buscar_columna(df_visitas, ['Fecha visita', 'Fecha', 'Date'])
     col_hora = buscar_columna(df_visitas, ['Hora digitado', 'Hora', 'Time'])
-    col_med = buscar_columna(df_vis
+    col_med = buscar_columna(df_visitas, ['Nombre farmacia o cliente', 'Farmacia', 'Médicos', 'Medicos', 'Cliente', 'Institución', 'Institucion', 'Nombre'])
+    col_obj = buscar_columna(df_visitas, ['Objetivo', 'Obj', 'Objetivos'])
+    col_com = buscar_columna(df_visitas, ['Comentario', 'Comentarios', 'Observación', 'Observacion'])
+    col_acomp = buscar_columna(df_visitas, ['Visita acompañada', 'Visita acompanada', 'Acompañada', 'Acompañamiento'])
+    col_muestra = buscar_columna(df_visitas, ['Material entregado', 'Muestra', 'Muestras'])
+    col_cant_muestra = buscar_columna(df_visitas, ['Cantidad de material', 'Cantidad', 'Cant'])
+    col_impacto_prod = buscar_columna(df_visitas, ['Impactos', 'Impacto', 'Producto'])
+
+    if not col_visita: 
+        col_visita = df_visitas.columns[0]
+    if not col_rep: 
+        col_rep = df_visitas.columns[0]
+    if not col_reg: 
+        col_reg = df_visitas.columns[0]
+    if not col_com: 
+        df_visitas['Comentario'] = '-'
+        col_com = 'Comentario'
+    if not col_obj: 
+        df_visitas['Objetivo'] = '-'
+        col_obj = 'Objetivo'
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("3. Filtros en Cascada")
+    
+    regiones = sorted(df_visitas[col_reg].dropna().unique()) if col_reg else []
+    selected_regiones = st.sidebar.multiselect("Región / Coordinación", options=regiones, default=regiones, key="filtro_reg")
+    df_f1 = df_visitas[df_visitas[col_reg].isin(selected_regiones)] if col_reg and selected_regiones else df_visitas
+    
+    ciclos = sorted(df_f1[col_ciclo].dropna().unique()) if col_ciclo else []
+    selected_ciclos = st.sidebar.multiselect("Ciclo", options=ciclos, default=ciclos, key="filtro_ciclo")
+    df_f2 = df_f1[df_f1[col_ciclo].isin(selected_ciclos)] if ciclos and selected_ciclos else df_f1
+    
+    lineas = sorted(df_f2[col_lin].dropna().unique()) if col_lin else []
+    selected_lineas = st.sidebar.multiselect("Línea Estratégica", options=lineas, default=lineas, key="filtro_lin")
+    df_f3 = df_f2[df_f2[col_lin].isin(selected_lineas)] if col_lin and selected_lineas else df_f2
+    
+    representantes = sorted(df_f3[col_rep].dropna().unique()) if col_rep else []
+    selected_reps = st.sidebar.multiselect(
+        "Representante", 
+        options=representantes, 
+        default=representantes, 
+        key="filtro_rep"
+    )
+    df_filtered = df_f3[df_f3[col_rep].isin(selected_reps)] if col_rep and selected_reps else df_f3
+    
+    df_unique = df_filtered.drop_duplicates(subset=[col_visita]).copy()
+    
+    df_unique['Comentario_Clean'] = df_unique[col_com].fillna('').astype(str).str.strip().str.lower()
+    df_unique['Rep_Comentario_Count'] = df_unique.groupby([col_rep, 'Comentario_Clean'])[col_visita].transform('count')
+    
+    def check_repetido_individual(row):
+        com = row['Comentario_Clean']
+        if com in ['', 'nan', 'none', '-']: 
+            return False
+        return row['Rep_Comentario_Count'] > 1
+
+    df_unique['Es_Repetido'] = df_unique.apply(check_repetido_individual, axis=1)
+
+    # ==========================================
+    # 1. DISTRIBUCIÓN DE VISITAS ÚNICAS POR FRANJA HORARIA
+    # ==========================================
+    st.subheader("1. Distribución de Visitas Únicas por Franja Horaria")
+    st.markdown("<span style='color: #B7BCC9;'>Auditoría global de puntualidad y franja de registro en visitas únicas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    def parse_hour_slot(hora_str):
+        try:
+            dt = pd.to_datetime(str(hora_str), format='%H:%M:%S', errors='coerce')
+            if pd.isna(dt): 
+                return 'No Registrada'
+            h = dt.hour
+            if 5 <= h < 12: 
+                return '1. Mañana (05:00 - 12:00)'
+            elif 12 <= h < 18: 
+                return '2. Tarde (12:00 - 18:00)'
+            else: 
+                return '3. Noche / Madrugada (18:00 - 05:00)'
+        except: 
+            return 'No Registrada'
+
+    if col_hora and col_hora in df_unique.columns:
+        df_unique['Franja_Horaria'] = df_unique[col_hora].apply(parse_hour_slot)
+        total_visitas = len(df_unique)
+        nocturnas_fuera = len(df_unique[df_unique['Franja_Horaria'] == '3. Noche / Madrugada (18:00 - 05:00)'])
+        pct_nocturnas = (nocturnas_fuera / total_visitas * 100) if total_visitas > 0 else 0
+
+        kpi1, kpi2, kpi3 = st.columns(3)
+        kpi1.metric("Total Visitas Únicas", f"{total_visitas:,}")
+        kpi2.metric("Registros en Noche / Madrugada", f"{nocturnas_fuera:,}")
+        kpi3.metric("% Alerta Acumulación Nocturna", f"{pct_nocturnas:.1f}%")
+        st.markdown("---")
+
+        franja_counts = df_unique['Franja_Horaria'].value_counts().reset_index()
+        franja_counts.columns = ['Franja Horaria', 'Total Visitas']
+        franja_counts = franja_counts.sort_values(by='Franja Horaria')
+        color_map = {
+            '1. Mañana (05:00 - 12:00)': '#2ECC71', 
+            '2. Tarde (12:00 - 18:00)': '#3DD6FF', 
+            '3. Noche / Madrugada (18:00 - 05:00)': '#FF2D8F', 
+            'No Registrada': '#B7BCC9'
+        }
+
+        fig_pie = px.pie(
+            franja_counts, names='Franja Horaria', values='Total Visitas', 
+            hole=0.5, template='plotly_dark', 
+            title="Semáforo de Oportunidad en el Registro de Visitas", 
+            color='Franja Horaria', color_discrete_map=color_map
+        )
+        fig_pie.update_traces(textinfo='percent+value', textposition='inside', insidetextorientation='horizontal', textfont_size=13)
+        fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20), font=dict(color='white'))
+        st.plotly_chart(fig_pie, use_container_width=True)
+    else:
+        st.info("No se detectó la columna de hora de registro para la distribución de franjas horarias.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
+    # ==========================================
+    st.subheader("2. Comparativa del % de Copiado Interno por Coordinación")
+    st.markdown("<span style='color: #B7BCC9;'>Comparativo del índice de autorrepetición agrupado por cada región o coordinación.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    df_reg_copia = df_unique.groupby(col_reg).agg(
+        Total_Visitas=(col_visita, 'count'), 
+        Comentarios_Repetidos=('Es_Repetido', lambda x: int(x.sum()))
+    ).reset_index()
+    df_reg_copia.columns = ['Región', 'Total_Visitas', 'Comentarios_Repetidos']
+    df_reg_copia['Pct_Copia'] = (df_reg_copia['Comentarios_Repetidos'] / df_reg_copia['Total_Visitas'] * 100).round(1)
+    df_reg_copia = df_reg_copia.sort_values(by='Pct_Copia', ascending=False)
+
+    fig_reg_copia = px.bar(
+        df_reg_copia, x='Región', y='Pct_Copia', text='Pct_Copia', template='plotly_dark', 
+        title="Índice de Copiado Interno por Coordinación / Región", 
+        color='Pct_Copia', 
+        color_continuous_scale=[[0.0, '#3DD6FF'], [0.4, '#7A2CFF'], [0.8, '#FF2D8F'], [1.0, '#9B2C2C']], 
+        range_color=[0, 100]
+    )
+    fig_reg_copia.update_traces(texttemplate='%{text}%', textposition='outside', textfont_size=12)
+    fig_reg_copia.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, xaxis_title="Coordinación / Región", yaxis_title="Índice de Copiado Interno (%)", yaxis=dict(range=[0, 110]), margin=dict(t=50, b=80, l=40, r=20), font=dict(color='white'))
+    st.plotly_chart(fig_reg_copia, use_container_width=True)
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 3. ÍNDICE DE AUTORREPETICIÓN POR REPRESENTANTE
+    # ==========================================
+    st.subheader("3. Auditoría de Calidad: Índice de Autorrepetición por Representante")
+    st.markdown("<span style='color: #B7BCC9;'>Evaluación estricta de cuántas veces cada representante recicla sus propios comentarios entre sus visitas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    total_comentarios = len(df_unique)
+    comentarios_repetidos = int(df_unique['Es_Repetido'].sum())
+    pct_copia = (comentarios_repetidos / total_comentarios * 100) if total_comentarios > 0 else 0
+    
+    ckpi1, ckpi2, ckpi3 = st.columns(3)
+    ckpi1.metric("Visitas Únicas Evaluadas", f"{total_comentarios:,}")
+    ckpi2.metric("Comentarios Autorrepetidos", f"{comentarios_repetidos:,}")
+    ckpi3.metric("% Índice Global de Autorrepetición", f"{pct_copia:.1f}%")
+    st.
