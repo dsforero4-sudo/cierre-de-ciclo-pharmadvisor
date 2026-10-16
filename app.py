@@ -271,4 +271,101 @@ if df_visitas is not None:
     if not col_rep: 
         col_rep = df_visitas.columns[0]
     if not col_reg: 
-        col_reg = df_visitas.
+        col_reg = df_visitas.columns[0]
+    if not col_com: 
+        df_visitas['Comentario'] = '-'
+        col_com = 'Comentario'
+    if not col_obj: 
+        df_visitas['Objetivo'] = '-'
+        col_obj = 'Objetivo'
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("3. Filtros en Cascada")
+    
+    regiones = sorted(df_visitas[col_reg].dropna().unique()) if col_reg else []
+    selected_regiones = st.sidebar.multiselect("Región / Coordinación", options=regiones, default=regiones, key="filtro_reg")
+    df_f1 = df_visitas[df_visitas[col_reg].isin(selected_regiones)] if col_reg and selected_regiones else df_visitas
+    
+    ciclos = sorted(df_f1[col_ciclo].dropna().unique()) if col_ciclo else []
+    selected_ciclos = st.sidebar.multiselect("Ciclo", options=ciclos, default=ciclos, key="filtro_ciclo")
+    df_f2 = df_f1[df_f1[col_ciclo].isin(selected_ciclos)] if ciclos and selected_ciclos else df_f1
+    
+    lineas = sorted(df_f2[col_lin].dropna().unique()) if col_lin else []
+    selected_lineas = st.sidebar.multiselect("Línea Estratégica", options=lineas, default=lineas, key="filtro_lin")
+    df_f3 = df_f2[df_f2[col_lin].isin(selected_lineas)] if col_lin and selected_lineas else df_f2
+    
+    representantes = sorted(df_f3[col_rep].dropna().unique()) if col_rep else []
+    selected_reps = st.sidebar.multiselect("Representante", options=representantes, default=representantes, key="filtro_rep")
+    df_filtered = df_f3[df_f3[col_rep].isin(selected_reps)] if col_rep and selected_reps else df_f3
+    
+    df_unique = df_filtered.drop_duplicates(subset=[col_visita]).copy()
+    
+    df_unique['Comentario_Clean'] = df_unique[col_com].fillna('').astype(str).str.strip().str.lower()
+    df_unique['Rep_Comentario_Count'] = df_unique.groupby([col_rep, 'Comentario_Clean'])[col_visita].transform('count')
+    
+    def check_repetido_individual(row):
+        com = row['Comentario_Clean']
+        if com in ['', 'nan', 'none', '-']: 
+            return False
+        return row['Rep_Comentario_Count'] > 1
+
+    df_unique['Es_Repetido'] = df_unique.apply(check_repetido_individual, axis=1)
+
+    # ==========================================
+    # 1. DISTRIBUCIÓN DE VISITAS POR FRANJA HORARIA
+    # ==========================================
+    st.subheader("1. Distribución de Visitas por Franja Horaria")
+    st.markdown("<span style='color: #B7BCC9;'>Auditoría global de puntualidad y franja de registro en visitas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    def parse_hour_slot(hora_str):
+        try:
+            dt = pd.to_datetime(str(hora_str), format='%H:%M:%S', errors='coerce')
+            if pd.isna(dt): 
+                return 'No Registrada'
+            h = dt.hour
+            if 5 <= h < 12: 
+                return '1. Mañana (05:00 - 12:00)'
+            elif 12 <= h < 18: 
+                return '2. Tarde (12:00 - 18:00)'
+            else: 
+                return '3. Noche / Madrugada (18:00 - 05:00)'
+        except: 
+            return 'No Registrada'
+
+    if col_hora and col_hora in df_unique.columns:
+        df_unique['Franja_Horaria'] = df_unique[col_hora].apply(parse_hour_slot)
+        total_visitas = len(df_unique)
+        nocturnas_fuera = len(df_unique[df_unique['Franja_Horaria'] == '3. Noche / Madrugada (18:00 - 05:00)'])
+        pct_nocturnas = (nocturnas_fuera / total_visitas * 100) if total_visitas > 0 else 0
+
+        kpi1, kpi2, kpi3 = st.columns(3)
+        kpi1.metric("Total Visitas", f"{total_visitas:,}")
+        kpi2.metric("Registros en Noche / Madrugada", f"{nocturnas_fuera:,}")
+        kpi3.metric("% Alerta Acumulación Nocturna", f"{pct_nocturnas:.1f}%")
+        st.markdown("---")
+
+        franja_counts = df_unique['Franja_Horaria'].value_counts().reset_index()
+        franja_counts.columns = ['Franja Horaria', 'Total Visitas']
+        franja_counts = franja_counts.sort_values(by='Franja Horaria')
+        color_map = {'1. Mañana (05:00 - 12:00)': '#2ECC71', '2. Tarde (12:00 - 18:00)': '#3DD6FF', '3. Noche / Madrugada (18:00 - 05:00)': '#FF2D8F', 'No Registrada': '#B7BCC9'}
+
+        fig_pie = px.pie(
+            franja_counts, names='Franja Horaria', values='Total Visitas', 
+            hole=0.5, template='plotly_dark', 
+            title="Semáforo de Oportunidad en el Registro de Visitas", 
+            color='Franja Horaria', color_discrete_map=color_map
+        )
+        fig_pie.update_traces(textinfo='percent+value', textposition='inside', insidetextorientation='horizontal', textfont_size=13)
+        fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20), font=dict(color='white'))
+        st.plotly_chart(fig_pie, use_container_width=True)
+    else:
+        st.info("No se detectó la columna de hora de registro para la distribución de franjas horarias.")
+
+    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
+    # ==========================================
+    st.subheader("2. Comparativa del % de Copiado Interno por Coordinación")
+    st.markdown("<span style='color: #
