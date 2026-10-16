@@ -341,31 +341,4 @@ if df_visitas is not None:
 
         kpi1, kpi2, kpi3 = st.columns(3)
         kpi1.metric("Total Visitas", f"{total_visitas:,}")
-        kpi2.metric("Registros en Noche / Madrugada", f"{nocturnas_fuera:,}")
-        kpi3.metric("% Alerta Acumulación Nocturna", f"{pct_nocturnas:.1f}%")
-        st.markdown("---")
-
-        franja_counts = df_unique['Franja_Horaria'].value_counts().reset_index()
-        franja_counts.columns = ['Franja Horaria', 'Total Visitas']
-        franja_counts = franja_counts.sort_values(by='Franja Horaria')
-        color_map = {'1. Mañana (05:00 - 12:00)': '#2ECC71', '2. Tarde (12:00 - 18:00)': '#3DD6FF', '3. Noche / Madrugada (18:00 - 05:00)': '#FF2D8F', 'No Registrada': '#B7BCC9'}
-
-        fig_pie = px.pie(
-            franja_counts, names='Franja Horaria', values='Total Visitas', 
-            hole=0.5, template='plotly_dark', 
-            title="Semáforo de Oportunidad en el Registro de Visitas", 
-            color='Franja Horaria', color_discrete_map=color_map
-        )
-        fig_pie.update_traces(textinfo='percent+value', textposition='inside', insidetextorientation='horizontal', textfont_size=13)
-        fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), margin=dict(t=50, b=80, l=20, r=20), font=dict(color='white'))
-        st.plotly_chart(fig_pie, use_container_width=True)
-    else:
-        st.info("No se detectó la columna de hora de registro para la distribución de franjas horarias.")
-
-    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
-
-    # ==========================================
-    # 2. COMPARATIVA DEL % DE COPIADO INTERNO POR COORDINACIÓN
-    # ==========================================
-    st.subheader("2. Comparativa del % de Copiado Interno por Coordinación")
-    st.markdown("<span style='color: #
+        kpi2.metric("Registros
