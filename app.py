@@ -280,4 +280,44 @@ if df_visitas is not None:
         col_obj = 'Objetivo'
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("3.
+    st.sidebar.subheader("3. Filtros en Cascada")
+    
+    regiones = sorted(df_visitas[col_reg].dropna().unique()) if col_reg else []
+    selected_regiones = st.sidebar.multiselect("Región / Coordinación", options=regiones, default=regiones, key="filtro_reg")
+    df_f1 = df_visitas[df_visitas[col_reg].isin(selected_regiones)] if col_reg and selected_regiones else df_visitas
+    
+    ciclos = sorted(df_f1[col_ciclo].dropna().unique()) if col_ciclo else []
+    selected_ciclos = st.sidebar.multiselect("Ciclo", options=ciclos, default=ciclos, key="filtro_ciclo")
+    df_f2 = df_f1[df_f1[col_ciclo].isin(selected_ciclos)] if ciclos and selected_ciclos else df_f1
+    
+    lineas = sorted(df_f2[col_lin].dropna().unique()) if col_lin else []
+    selected_lineas = st.sidebar.multiselect("Línea Estratégica", options=lineas, default=lineas, key="filtro_lin")
+    df_f3 = df_f2[df_f2[col_lin].isin(selected_lineas)] if col_lin and selected_lineas else df_f2
+    
+    representantes = sorted(df_f3[col_rep].dropna().unique()) if col_rep else []
+    selected_reps = st.sidebar.multiselect("Representante", options=representantes, default=representantes, key="filtro_rep")
+    df_filtered = df_f3[df_f3[col_rep].isin(selected_reps)] if col_rep and selected_reps else df_f3
+    
+    df_unique = df_filtered.drop_duplicates(subset=[col_visita]).copy()
+    
+    df_unique['Comentario_Clean'] = df_unique[col_com].fillna('').astype(str).str.strip().str.lower()
+    df_unique['Rep_Comentario_Count'] = df_unique.groupby([col_rep, 'Comentario_Clean'])[col_visita].transform('count')
+    
+    def check_repetido_individual(row):
+        com = row['Comentario_Clean']
+        if com in ['', 'nan', 'none', '-']: 
+            return False
+        return row['Rep_Comentario_Count'] > 1
+
+    df_unique['Es_Repetido'] = df_unique.apply(check_repetido_individual, axis=1)
+
+    # ==========================================
+    # 1. DISTRIBUCIÓN DE VISITAS ÚNICAS POR FRANJA HORARIA
+    # ==========================================
+    st.subheader("1. Distribución de Visitas Únicas por Franja Horaria")
+    st.markdown("<span style='color: #B7BCC9;'>Auditoría global de puntualidad y franja de registro en visitas únicas.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    def parse_hour_slot(hora_str):
+        try:
+            dt = pd.to
